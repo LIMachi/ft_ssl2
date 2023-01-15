@@ -1,3 +1,0 @@
-/mnt/c/Users/leema/Desktop/projets 42/ft_ssl/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/leema/Desktop/projets 42/ft_ssl/cmake-build-debug/CMakeFiles/edit_cache.dir
-/mnt/c/Users/leema/Desktop/projets 42/ft_ssl/cmake-build-debug/CMakeFiles/ft_ssl.dir
