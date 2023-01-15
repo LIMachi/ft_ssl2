@@ -22,7 +22,7 @@ typedef enum e_parser_input_type	t_parser_input_type;
 typedef struct s_modes				t_modes;
 typedef struct s_mode				t_mode;
 typedef struct s_parser_state		t_parser_state;
-typedef struct s_parser_input		t_parser_input;
+typedef struct s_input				t_input;
 
 struct								s_mode {
 	char	*name;
@@ -48,17 +48,18 @@ enum								e_parser_input_type {
 	OUTPUT_FILE
 };
 
-struct								s_parser_input {
+struct								s_input {
 	t_parser_input_type	type;
 	const char			*arg;
+	size_t				length;
 	const char			*data;
 };
 
 struct								s_parser_state {
-	size_t				mode;
-	uint64_t			flags;
-	size_t				input_count;
-	t_parser_input		*inputs;
+	size_t		mode;
+	uint64_t	flags;
+	size_t		cinputs;
+	t_input		*inpts;
 };
 
 uint64_t							flag(char c);
@@ -80,15 +81,15 @@ void								get_remainder_files(t_parser_state *state,
 
 t_modes								modes(void);
 
-int									md5(t_parser_state *state, int argc,
+int									md5(t_parser_state *s, int argc,
 										t_argvp argv);
 
 int									sha256(t_parser_state *state, int argc,
 										t_argvp argv);
 
-char								*read_fd(int fd);
+char								*read_fd(int fd, size_t *size);
 
-char								*read_file(const char *path);
+char								*read_file(const char *path, size_t *size);
 
 int									debug_digests(t_parser_state *state);
 

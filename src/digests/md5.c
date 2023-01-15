@@ -18,8 +18,15 @@
 #include "common_functions.h"
 #include "digests.h"
 
-void		left_rotate_b(t_md5hash *hash, uint32_t f, uint32_t w, uint32_t i) {
+/**
+* md5sum test.txt ->                        35310a49e26265a58122d9c6e0823f49
+* ./ft_ssl md5 test.txt -> MD5 (test.txt) = 35310a49e26265a58122d9c6e0823f49
+*/
+
+void	rotate(t_md5hash *hash, uint32_t f, uint32_t w, uint32_t i)
+{
 	uint32_t		x;
+	uint32_t		t;
 	uint32_t		shift;
 	static uint32_t	usine[64] = {0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
 		0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501, 0x698098d8, 0x8b44f7af,
@@ -37,103 +44,96 @@ void		left_rotate_b(t_md5hash *hash, uint32_t f, uint32_t w, uint32_t i) {
 
 	shift = ushift[i & 3 | ((i & 0xF0) >> 2)];
 	x = hash->w.a + f + usine[i] + w;
+	t = hash->w.d;
+	hash->w.d = hash->w.c;
+	hash->w.c = hash->w.b;
 	hash->w.b += (x << shift) | (x >> (32 - shift));
+	hash->w.a = t;
 }
 
-uint32_t	get_message_block(const char *in, size_t in_len, uint32_t word_index) {
-	t_md5hash t;
-	t_md5hash s;
+uint32_t	get_block(const char *in, size_t in_len, uint32_t word_index)
+{
+	t_md5hash	t;
+	t_md5hash	s;
+	uint32_t	i;
 
 	if (word_index * 4 + 4 <= in_len)
-		return ((uint32_t*)in)[word_index];
-	t = (t_md5hash){.u128 = 0};
-	for (uint32_t i = 0; i < 4; ++i) {
+		return (((uint32_t *)in)[word_index]);
+	t = (t_md5hash){.u64 = {0, 0}};
+	i = -1;
+	while (++i < 4)
+	{
 		if (i + word_index * 4 < in_len)
 			t.b[i] = in[i + word_index * 4];
 		else if (i + word_index * 4 == in_len)
 			t.b[i] = 0x80;
 		else if ((i + word_index * 4) % 64 < 56)
 			t.b[i] = 0;
-		else {
+		else
+		{
 			s = (t_md5hash){.u64 = {in_len * 8, 0}};
 			t.b[i] = s.b[(i + word_index * 4) % 64 - 56];
 		}
 	}
-	return t.w.a;
+	return (t.w.a);
 }
 
-//md5sum test.txt -> 35310a49e26265a58122d9c6e0823f49
-//c                  35310a49e26265a58122d9c6e0823f49
+void	iteration(t_md5hash *h, const char *in, size_t initial_len,
+	uint32_t i)
+{
+	uint32_t	f;
+	uint32_t	g;
+
+	if (i < 16)
+	{
+		f = (h->w.b & h->w.c) | ((~h->w.b) & h->w.d);
+		g = i;
+	}
+	else if (i < 32)
+	{
+		f = (h->w.d & h->w.b) | ((~h->w.d) & h->w.c);
+		g = (5 * i + 1) % 16;
+	}
+	else if (i < 48)
+	{
+		f = h->w.b ^ h->w.c ^ h->w.d;
+		g = (3 * i + 5) % 16;
+	}
+	else
+	{
+		f = h->w.c ^ (h->w.b | (~h->w.d));
+		g = (7 * i) % 16;
+	}
+	rotate(h, f, get_block(in, initial_len, g), i);
+}
 
 void	md5h(const char *in, char *out)
 {
-	uint8_t *msg = NULL;
+	uint32_t	i;
+	uint32_t	j;
+	t_md5hash	final;
+	size_t		initial_len;
+	t_md5hash	h;
 
-	uint32_t h0, h1, h2, h3;
-
-    h0 = 0x67452301;
-    h1 = 0xefcdab89;
-    h2 = 0x98badcfe;
-    h3 = 0x10325476;
-    size_t	initial_len = 0;
+	final = (t_md5hash){.w = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476}};
+	initial_len = 0;
 	while (in[initial_len] != '\0')
 		++initial_len;
-
-    int new_len = ((((initial_len + 8) / 64) + 1) * 64) - 8;
-
-	msg = calloc(new_len + 64, 1);
-
-	memcpy(msg, in, initial_len);
-	msg[initial_len] = 128;
-	uint32_t bits_len = 8*initial_len;
-	memcpy(msg + new_len, &bits_len, 4);
-
-	uint8_t *test = calloc(new_len + 64, 1);
-	for (int i = 0; i <= new_len / 4; ++i){
-		t_md5hash	th = {.w = get_message_block(in, initial_len, i)};
-		test[i * 4] = th.b[0];
-		test[i * 4 + 1] = th.b[1];
-		test[i * 4 + 2] = th.b[2];
-		test[i * 4 + 3] = th.b[3];
+	i = -1;
+	while (++i < (initial_len + 8) / 64 + 1)
+	{
+		h = final;
+		j = -1;
+		while (++j < 64)
+			iteration(&h, in, initial_len, j);
+		final.w.a += h.w.a;
+		final.w.b += h.w.b;
+		final.w.c += h.w.c;
+		final.w.d += h.w.d;
 	}
-
-	int offset;
-    for(offset=0; offset<new_len; offset += (512/8)) {
-
-		t_md5hash h = {.w = {h0, h1, h2, h3}};
-
-        uint32_t i;
-        for(i = 0; i<64; i++){
-			uint32_t f, g;
-			if (i < 16){
-				f = (h.w.b & h.w.c) | ((~h.w.b) & h.w.d);
-				g = i;
-			} else if (i < 32){
-				f = (h.w.d & h.w.b) | ((~h.w.d) & h.w.c);
-				g = (5 * i + 1) % 16;
-			} else if (i < 48){
-				f = h.w.b ^ h.w.c ^ h.w.d;
-				g = (3 * i + 5) % 16;
-			} else{
-				f = h.w.c ^ (h.w.b | (~h.w.d));
-				g = (7 * i) % 16;
-			}
-			uint32_t temp = h.w.d;
-			h.w.d = h.w.c;
-			h.w.c = h.w.b;
-			left_rotate_b(&h, f, get_message_block(in, initial_len, g), i);
-			h.w.a = temp;
-		}
-
-		h0 += h.w.a;
-        h1 += h.w.b;
-        h2 += h.w.c;
-        h3 += h.w.d;
-	}
-
-	t_md5hash final = (t_md5hash){.w = {h0, h1, h2, h3}};
-    for (int i = 0; i < 16; ++i)
-    	out[i] = final.b[i];
+	i = -1;
+	while (++i < 16)
+		out[i] = final.b[i];
 }
 
 /**
@@ -144,31 +144,31 @@ void	md5h(const char *in, char *out)
 * block keyword and not the indentation of the previous if keyword... *facepalm*
 */
 
-int	md5(t_parser_state *state, int argc, t_argvp argv)
+int	md5(t_parser_state *s, int argc, t_argvp argv)
 {
 	int		read_stdin;
 	char	**hashes;
 	size_t	i;
 
-	get_remainder_files(state, argc, argv);
-	read_stdin = state->input_count == 0;
-	read_stdin |= (state->flags & flag('p')) != 0;
+	get_remainder_files(s, argc, argv);
+	read_stdin = s->cinputs == 0;
+	read_stdin |= (s->flags & flag('p')) != 0;
 	i = -1;
-	while (++i < state->input_count)
-		if (state->inputs[i].type == INPUT_FILE)
-			state->inputs[i].data = read_file(state->inputs[i].arg);
+	while (++i < s->cinputs)
+		if (s->inpts[i].type == INPUT_FILE)
+			s->inpts[i].data = read_file(s->inpts[i].arg, &s->inpts[i].length);
 	else
-		state->inputs[i].data = state->inputs[i].arg;
+			s->inpts[i].data = s->inpts[i].arg;
 	if (read_stdin)
-		state->inputs[state->input_count++] = (t_parser_input){STDIN, "stdin",
-			read_fd(0)};
-	hashes = allocate_compact_2d_array(state->input_count, sizeof(char) * 16);
+		s->inpts[s->cinputs] = (t_input){STDIN, "stdin", 0, NULL};
+	if (read_stdin)
+		s->inpts[s->cinputs++].data = read_fd(0, &s->inpts[s->cinputs].length);
+	hashes = allocate_compact_2d_array(s->cinputs, sizeof(char) * 16);
 	i = -1;
-	while (++i < state->input_count)
-		if (state->inputs[i].data == NULL)
-			return (print_file_error(state, i)
-				| free_state_and_hashes(state, hashes));
+	while (++i < s->cinputs)
+		if (s->inpts[i].data == NULL)
+			return (print_file_error(s, i) | free_state_and_hashes(s, hashes));
 	else
-		md5h(state->inputs[i].data, hashes[i]);
-	return (print_hashes(read_stdin, state, hashes, 16));
+		md5h(s->inpts[i].data, hashes[i]);
+	return (print_hashes(read_stdin, s, hashes, 16));
 }

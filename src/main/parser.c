@@ -28,6 +28,7 @@ int	process_string(const t_choice *self, t_parse_result *out, const char *arg,
 	void *state)
 {
 	t_parser_state	*ps;
+	size_t			l;
 
 	if (arg == NULL)
 	{
@@ -35,7 +36,10 @@ int	process_string(const t_choice *self, t_parse_result *out, const char *arg,
 		return (1);
 	}
 	ps = (t_parser_state *)state;
-	ps->inputs[ps->input_count++] = (t_parser_input){INPUT_STRING, arg};
+	l = 0;
+	while (arg[l] != '\0')
+		++l;
+	ps->inpts[ps->cinputs++] = (t_input){INPUT_STRING, arg, l, arg};
 	out->argi++;
 	return (0);
 }
@@ -68,6 +72,6 @@ void	get_remainder_files(t_parser_state *state, int argc, t_argvp argv)
 
 	i = 0;
 	while (i < argc)
-		state->inputs[state->input_count++] = (t_parser_input){
+		state->inpts[state->cinputs++] = (t_input){
 			INPUT_FILE, argv[i++]};
 }

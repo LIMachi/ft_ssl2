@@ -35,7 +35,7 @@ void	print_stdin(t_parser_state *state, char *hash, size_t hash_length)
 	if (state->flags & flag('p'))
 	{
 		write(1, "\"", nq);
-		write_all_first_line(1, state->inputs[state->input_count - 1].data);
+		write_all_first_line(1, state->inpts[state->cinputs - 1].data);
 		write(1, "\"", nq);
 		write(1, "\n", !nq);
 	}
@@ -55,19 +55,19 @@ void	print_file_or_string(t_parser_state *state, char *hash,
 
 	quiet = (state->flags & flag('q')) != 0;
 	reversed = (state->flags & flag('r')) != 0;
-	string = state->inputs[index].type == INPUT_STRING;
+	string = state->inpts[index].type == INPUT_STRING;
 	if (!quiet && !reversed)
 	{
 		write_maj(1, modes().modes[state->mode].name);
 		write(1, " (\"", 2 + string);
-		write_all_first_line(1, state->inputs[index].arg);
+		write_all_first_line(1, state->inpts[index].arg);
 		write(1, &"\") = "[1 - string], 4 + string);
 	}
 	write_hash(hash, hash_length);
 	if (!quiet && reversed)
 	{
 		write(1, " \"", 1 + string);
-		write_all_first_line(1, state->inputs[index].arg);
+		write_all_first_line(1, state->inpts[index].arg);
 		write(1, "\"", string);
 	}
 	write(1, "\n", 1);
@@ -79,22 +79,23 @@ void	free_state_and_hashes(t_parser_state *state, char **hashes)
 
 	i = -1;
 	if (state != NULL)
-		while (++i < state->input_count)
-			if (state->inputs[i].type == INPUT_FILE
-				|| state->inputs[i].type == STDIN)
-				free((void *)state->inputs[i].data);
+		while (++i < state->cinputs)
+			if (state->inpts[i].type == INPUT_FILE
+				|| state->inpts[i].type == STDIN)
+				free((void *)state->inpts[i].data);
 	if (hashes != NULL)
 		free(hashes);
 }
 
-int	print_hashes(int read_stdin, t_parser_state *state, char **hashes, size_t hash_length)
+int	print_hashes(int read_stdin, t_parser_state *state, char **hashes,
+	size_t hash_length)
 {
 	size_t	i;
 
 	if (read_stdin)
-		print_stdin(state, hashes[state->input_count - 1], hash_length);
+		print_stdin(state, hashes[state->cinputs - 1], hash_length);
 	i = -1;
-	while (++i < state->input_count - read_stdin)
+	while (++i < state->cinputs - read_stdin)
 		print_file_or_string(state, hashes[i], i, hash_length);
 	free_state_and_hashes(state, hashes);
 	return (0);

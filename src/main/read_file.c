@@ -37,7 +37,7 @@ char	*append(char *to, size_t size, const char *from, size_t add)
 	return (out);
 }
 
-char	*read_fd(int fd)
+char	*read_fd(int fd, size_t *out_size)
 {
 	char	buff[128];
 	char	*out;
@@ -56,12 +56,12 @@ char	*read_fd(int fd)
 			break ;
 		s += r;
 	}
+	if (out_size != NULL)
+		*out_size = r;
+	if (r < 0 && out != NULL)
+		free(out);
 	if (r < 0)
-	{
-		if (out != NULL)
-			free(out);
 		return (NULL);
-	}
 	return (out);
 }
 
@@ -90,7 +90,7 @@ ssize_t	file_size(const char *path)
 	return (size);
 }
 
-char	*read_file(const char *path)
+char	*read_file(const char *path, size_t *out_size)
 {
 	int		fd;
 	char	*out;
@@ -100,6 +100,8 @@ char	*read_file(const char *path)
 	if (size < 0)
 		return (NULL);
 	out = malloc(sizeof(char) * size);
+	if (out_size != NULL)
+		*out_size = size;
 	fd = open(path, O_RDONLY);
 	read(fd, out, size);
 	close(fd);

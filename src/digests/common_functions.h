@@ -16,6 +16,7 @@
 # include "../main/ft_ssl.h"
 
 int		free_state_and_hashes(t_parser_state *state, char **hashes);
-int		print_hashes(int read_stdin, t_parser_state *state, char **hashes, size_t hash_length);
+int		print_hashes(int read_stdin, t_parser_state *state, char **hashes,
+			size_t hash_length);
 
 #endif

@@ -25,7 +25,6 @@ struct					s_words {
 };
 
 union					u_md5hash {
-	unsigned __int128	u128;
 	uint64_t			u64[2];
 	struct s_words		w;
 	char				b[16];

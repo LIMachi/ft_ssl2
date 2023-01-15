@@ -18,15 +18,15 @@ int	debug_digests(t_parser_state *state)
 {
 	int	i;
 
-	printf("mode: %s, flags: %lx, input_count: %lu\n",
-		modes().modes[state->mode].name, state->flags, state->input_count);
+	printf("mode: %s, flags: %lx, cinputs: %lu\n",
+		modes().modes[state->mode].name, state->flags, state->cinputs);
 	i = 0;
-	while (i < state->input_count)
+	while (i < state->cinputs)
 	{
-		if (state->inputs[i].type == INPUT_FILE)
-			printf("file: %s\n", state->inputs[i].arg);
+		if (state->inpts[i].type == INPUT_FILE)
+			printf("file: %s\n", state->inpts[i].arg);
 		else
-			printf("string: %s\n", state->inputs[i].arg);
+			printf("string: %s\n", state->inpts[i].arg);
 		++i;
 	}
 	return (0);
@@ -65,8 +65,8 @@ int	main(const int argc, t_argvp argv)
 	{'\0', "sha256", process_mode, digest_arguments()}
 	};
 	parse_state = (t_parser_state){-1, 0, 0,
-		malloc(sizeof(t_parser_input) * argc)};
-	if (parse_state.inputs == NULL)
+		malloc(sizeof(t_input) * argc)};
+	if (parse_state.inpts == NULL)
 		return (-1);
 	result = parse(create_parser(argc, argv, &parse_state), &node);
 	if (result.err != 0)
@@ -76,6 +76,6 @@ int	main(const int argc, t_argvp argv)
 				&parse_state, argc - result.argi, &argv[result.argi]);
 	else
 		usage();
-	free(parse_state.inputs);
+	free(parse_state.inpts);
 	return (result.err);
 }
