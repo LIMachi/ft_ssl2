@@ -17,34 +17,35 @@ inline uint64_t	flag(const char c)
 	return (((uint64_t)1) << (c - 'a'));
 }
 
-int	process_flag(const t_choice *self, t_parse_result *out, const char *arg,
+int	process_flag(const t_choice *self, t_consume_params params, int *error,
 	void *state)
 {
 	((t_parser_state *)state)->flags |= ((uint64_t)1) << (self->alias - 'a');
 	return (0);
 }
 
-int	process_string(const t_choice *self, t_parse_result *out, const char *arg,
+int	process_string(const t_choice *self, t_consume_params params, int *error,
 	void *state)
 {
 	t_parser_state	*ps;
 	size_t			l;
 
-	if (arg == NULL)
+	if (params.next_arg == NULL)
 	{
-		out->err = INVALID_STRING;
+		*error = FT_SSL_INVALID_STRING;
 		return (1);
 	}
 	ps = (t_parser_state *)state;
 	l = 0;
-	while (arg[l] != '\0')
+	while (params.next_arg[l] != '\0')
 		++l;
-	ps->inpts[ps->cinputs++] = (t_input){INPUT_STRING, arg, l, arg};
-	out->argi++;
+	ps->inpts[ps->cinputs++] = (t_input){INPUT_STRING, params.next_arg, l,
+		params.next_arg};
+	*params.jump_arg = 1;
 	return (0);
 }
 
-int	process_mode(const t_choice *self, t_parse_result *out, const char *arg,
+int	process_mode(const t_choice *self, t_consume_params params, int *error,
 	void *state)
 {
 	size_t			i;
@@ -62,7 +63,7 @@ int	process_mode(const t_choice *self, t_parse_result *out, const char *arg,
 			return (0);
 		}
 	}
-	out->err = INVALID_MODE;
+	*error = FT_SSL_INVALID_MODE;
 	return (1);
 }
 

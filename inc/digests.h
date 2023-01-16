@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   print_utils.c                                      :+:      :+:    :+:   */
+/*   digests.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,38 +10,26 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "print_utils.h"
+#ifndef DIGESTS_H
+# define DIGESTS_H
 
-void	write_all_first_line(int fd, const char *str)
-{
-	size_t	l;
+# include "ft_ssl.h"
 
-	l = 0;
-	while (str[l] != '\0' && str[l] != '\n' && str[l] != '\r')
-		++l;
-	write(fd, str, l);
-}
+typedef union u_md5hash	t_md5hash;
 
-void	write_maj(int fd, const char *str)
-{
-	size_t	l;
+struct					s_words {
+	uint32_t	a;
+	uint32_t	b;
+	uint32_t	c;
+	uint32_t	d;
+};
 
-	l = -1;
-	while (str[++l] != '\0')
-	{
-		if (str[l] >= 'a' && str[l] <= 'z')
-			write(fd, &"ABCDEFGHIJKLMNOPQRSTUVWXYZ"[str[l] - 'a'], 1);
-		else
-			write(fd, &str[l], 1);
-	}
-}
+union					u_md5hash {
+	uint64_t			u64[2];
+	struct s_words		w;
+	char				b[16];
+};
 
-int	print_file_error(t_parser_state *state, size_t i)
-{
-	write(1, "ft_ssl: ", 8);
-	write_all_first_line(1, modes().modes[state->mode].name);
-	write(1, ": ", 2);
-	write_all_first_line(1, state->inpts[i].arg);
-	write(1, ": Cannot open file\n", 19);
-	return (CANT_READ_FILE);
-}
+t_node					*digest_arguments(void);
+
+#endif

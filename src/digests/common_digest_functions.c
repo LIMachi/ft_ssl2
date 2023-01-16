@@ -11,8 +11,8 @@
 /* ************************************************************************** */
 
 #include <malloc.h>
-#include "../main/ft_ssl.h"
-#include "../main/print_utils.h"
+#include "ft_ssl.h"
+#include "print_utils.h"
 
 void	write_hash(const char *hash, size_t hash_length)
 {

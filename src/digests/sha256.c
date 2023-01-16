@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../main/ft_ssl.h"
+#include "ft_ssl.h"
 
 int	sha256(t_parser_state *state, int argc, t_argvp argv)
 {

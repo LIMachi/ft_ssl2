@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../argument_parser/argument_parser.h"
-#include "../main/ft_ssl.h"
+#include "argument_parser.h"
+#include "ft_ssl.h"
 
 t_node	*digest_arguments(void)
 {

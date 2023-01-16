@@ -12,10 +12,10 @@
 
 #include <malloc.h>
 #include <string.h>
-#include "../main/ft_ssl.h"
-#include "../main/compact_array.h"
-#include "../main/print_utils.h"
-#include "common_functions.h"
+#include "ft_ssl.h"
+#include "compact_array.h"
+#include "print_utils.h"
+#include "common_digest_functions.h"
 #include "digests.h"
 
 /**

@@ -17,17 +17,24 @@
 
 typedef const char *const *const	t_argvp;
 
+typedef struct s_consume_params		t_consume_params;
+
 typedef struct s_choice				t_choice;
 typedef struct s_node				t_node;
 
 typedef struct s_parse_result		t_parse_result;
 typedef struct s_parser				t_parser;
 
+struct								s_consume_params {
+	const char *const	next_arg;
+	int					*jump_arg;
+};
+
 struct								s_choice {
 	char				alias;
 	const char *const	name;
-	int (*const			callback)(const t_choice *self, t_parse_result *out,
-			const char *arg, void *state);
+	int (*const			consume)(const t_choice *self, t_consume_params params,
+			int *error, void *state);
 	const t_node *const	next;
 };
 
@@ -44,15 +51,14 @@ struct								s_parse_result {
 };
 
 struct								s_parser {
-	int			argc;
+	const int	argc;
 	t_argvp		argv;
 	void *const	state;
 };
 
 int									str_match(const char *str1,
 										const char *str2);
-t_parse_result						parse(t_parser parser, const t_node *node);
-t_parser							create_parser(int argc, t_argvp argv,
-										void *state);
+t_parse_result						parse_varg(int argc, t_argvp varg,
+										void *state, const t_node *node);
 
 #endif

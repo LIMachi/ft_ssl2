@@ -11,8 +11,10 @@
 /* ************************************************************************** */
 
 #include <malloc.h>
-#include "../digests/digests.h"
+#include <unistd.h>
+#include "digests.h"
 #include "ft_ssl.h"
+#include "print_utils.h"
 
 int	debug_digests(t_parser_state *state)
 {
@@ -43,14 +45,32 @@ t_modes	modes(void)
 int	process_error(t_parser_state state, int argc, t_argvp argv,
 	t_parse_result result)
 {
-	printf("got error: %i at argi: %i ('%s')\n", result.err, result.argi,
-		argv[result.argi]);
+	int	i;
+
+	if (result.err == FT_SSL_INVALID_MODE)
+	{
+		write(1, "ft_ssl: Error: '", 16);
+		write_all_first_line(1, argv[result.argi]);
+		write(1, "'is an invalid command.\n\nCommands:\n", 35);
+		i = -1;
+		while (++i < modes().mode_count)
+		{
+			write_all_first_line(1, modes().modes[i].name);
+			write(1, "\n", 1);
+		}
+	}
+	if (result.err == FT_SSL_INVALID_STRING)
+	{
+		write(1, "ft_ssl: Error: string expected after flag '", 43);
+		write_all_first_line(1, argv[result.argi]);
+		write(1, "'\n", 2);
+	}
 	return (0);
 }
 
 int	usage(void)
 {
-	printf("usage: ft_ssl command [flags] [file/string]\n");
+	write(1, "Usage: ft_ssl command [flags] [file/string]\n", 44);
 	return (0);
 }
 
@@ -58,7 +78,7 @@ int	main(const int argc, t_argvp argv)
 {
 	t_parser_state	parse_state;
 	t_parse_result	result;
-	static t_node	node = {INVALID_MODE, NULL, 2, NULL};
+	static t_node	node = {FT_SSL_INVALID_MODE, NULL, 2, NULL};
 
 	node.choices = (t_choice[2]){
 	{'\0', "md5", process_mode, digest_arguments()},
@@ -68,7 +88,7 @@ int	main(const int argc, t_argvp argv)
 		malloc(sizeof(t_input) * argc)};
 	if (parse_state.inpts == NULL)
 		return (-1);
-	result = parse(create_parser(argc, argv, &parse_state), &node);
+	result = parse_varg(argc, argv, &parse_state, &node);
 	if (result.err != 0)
 		process_error(parse_state, argc, argv, result);
 	else if (parse_state.mode != -1)

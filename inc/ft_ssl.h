@@ -14,7 +14,7 @@
 # define FT_SSL_H
 
 # include <stdint.h>
-# include "../argument_parser/argument_parser.h"
+# include "argument_parser.h"
 
 typedef enum e_ssl_error			t_ssl_error;
 typedef enum e_parser_input_type	t_parser_input_type;
@@ -36,9 +36,9 @@ struct								s_modes {
 
 enum								e_ssl_error {
 	OK,
-	INVALID_MODE,
-	INVALID_STRING,
-	CANT_READ_FILE
+	FT_SSL_INVALID_MODE,
+	FT_SSL_INVALID_STRING,
+	FT_SSL_CANT_READ_FILE
 };
 
 enum								e_parser_input_type {
@@ -65,15 +65,15 @@ struct								s_parser_state {
 uint64_t							flag(char c);
 
 int									process_flag(const t_choice *self,
-										t_parse_result *out, const char *arg,
+										t_consume_params params, int *error,
 										void *state);
 
 int									process_string(const t_choice *self,
-										t_parse_result *out, const char *arg,
+										t_consume_params params, int *error,
 										void *state);
 
 int									process_mode(const t_choice *self,
-										t_parse_result *out, const char *arg,
+										t_consume_params params, int *error,
 										void *state);
 
 void								get_remainder_files(t_parser_state *state,
