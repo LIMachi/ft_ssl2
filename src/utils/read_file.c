@@ -39,7 +39,7 @@ char	*append(char *to, size_t size, const char *from, size_t add)
 
 char	*read_fd(int fd, size_t *out_size)
 {
-	char	buff[128];
+	char	buff[4096];
 	char	*out;
 	size_t	s;
 	ssize_t	r;
@@ -48,7 +48,7 @@ char	*read_fd(int fd, size_t *out_size)
 	out = NULL;
 	while (1)
 	{
-		r = read(fd, buff, 128);
+		r = read(fd, buff, 4096);
 		if (r <= 0)
 			break ;
 		out = append(out, s, buff, r);
@@ -70,7 +70,7 @@ ssize_t	file_size(const char *path)
 	int		fd;
 	ssize_t	size;
 	ssize_t	ts;
-	char	buff[1024 * 1024];
+	char	buff[4096];
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
@@ -78,7 +78,7 @@ ssize_t	file_size(const char *path)
 	size = 0;
 	while (1)
 	{
-		ts = read(fd, buff, 1024 * 1024);
+		ts = read(fd, buff, 4096);
 		if (ts > 0)
 			size += ts;
 		else if (ts == 0)

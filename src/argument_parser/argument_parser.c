@@ -17,7 +17,10 @@
 * 42's norm compliant (version 3.3.51 https://github.com/42School/norminette)
 *
 * To use, simply create a parser tree (each node represent a set of choices for
-* a state machine) and use the parse_varg function.
+* a state machine) and use the parse_argv function.
+* The parser itself does not use any malloc/free (despite heavy usage of
+* pointers), but creating the tree might use allocations (at the discretion of
+* the user).
 *
 * A node is a struct of 4 variables:
 * An optional (0 to ignore) error value if no choices matched at this node.
@@ -27,10 +30,11 @@
 *
 * A choice is a struct of 4 variables:
 * An alias (single char) used for short form arguments (-a -> alias 'a'), set to
-*   '\0' to ignore. Partially GNU compatible (-ab -> aliases 'a' & 'b', but if
-*   'a' consume the argument after it 'b' will be skipped).
+*   '\0' to ignore. Aliases can be combined in a single arg (-ab -> aliases 'a'
+*   & 'b') and even consume multiple args after (-ss str1 str2 -a).
 * A fully qualified name (no assumption of using '--' before, '--help' and
-*   'mode' are both valid).
+*   'mode' are both valid. The name '--' alone is reserved to stop the parsing,
+*   but might be ignored if consumed by a previous argument accepting strings).
 * A nullable callback that will allow you to process the current node how you
 *   see fit. The parameters give you immutable accesses to the node that
 *   matched, the current and next arg, a flag to signal that you already
@@ -40,7 +44,7 @@
 * A nullable reference to a node to jump to if this choice matched and the
 *   callback returned 0.
 *
-* Once you have your tree setup, you can call parse_varg with argc and argv as
+* Once you have your tree setup, you can call parse_argv with argc and argv as
 * the first 2 parameters (the first 2 parameters of your main), then you can
 * pass a pointer to your data that will be passed to the callbacks of matching
 * choices, finally add the first node of your tree and your set.
@@ -53,7 +57,7 @@
 *   t_parser_node node = {INVALID_CHOICE, NULL, 2, (t_choice[2]){
 *     {'\0', "hello", NULL, &node}, {'\0', "world", NULL, &node}}};
 *
-*   return parse(argc, argv, NULL, &node);
+*   return parse_argv(argc, argv, NULL, &node);
 * }
 * ^
 * the above code will result in a parsing that will allow only 'hello' and
@@ -72,7 +76,7 @@
 *   t_parser_node modes = {INVALID_MODE, NULL, 2, (t_choice[2]){
 *     {'\0', "md5", got_mode, &f}, {'\0', "sha256", got_mode, &f}}};
 *
-*   t_parse_result res = parse(argc, argv, &state, &modes);
+*   t_parse_result res = parse_argv(argc, argv, &state, &modes);
 *   ... do something with res.argi, argc, argv and state
 * }
 * ^
@@ -93,97 +97,132 @@
 * ./run md5 test -q -> will stop after md5 since 'test' is not known
 */
 
-static inline int	consume(t_parse_result *const out, t_parser parser,
-	int *i, const t_node **const node)
+int	str_match(const char *str1, const char *str2)
+{
+	int	i;
+
+	if (str1 == 0 || str2 == 0)
+		return (0);
+	i = 0;
+	while (str1[i] != '\0' && str2[i] != '\0' && str1[i] == str2[i])
+		++i;
+	return (str1[i] == str2[i]);
+}
+
+static inline int	consume(t_parse_result *const out, t_parser *parser,
+	int choice, const t_node **const node)
 {
 	const char	*arg;
 	int			consume_arg;
 
-	if (i[0] < 0)
+	if (choice < 0)
+	{
 		out->err = (*node)->missing_error;
-	if (i[0] == -1)
-		++out->argi;
-	if (i[0] < 0)
 		return (1);
-	if (out->argi + 1 < parser.argc)
-		arg = parser.argv[out->argi + 1];
+	}
+	if (out->argi + 1 < parser->argc)
+		arg = parser->argv[out->argi + 1];
 	else
-		arg = NULL;
+		arg = 0;
 	consume_arg = 0;
-	if ((*node)->choices[i[0]].consume != NULL && (*node)->choices[i[0]]
-		.consume(&(*node)->choices[i[0]], (t_consume_params){arg, &consume_arg},
-		&out->err, parser.state))
+	if ((*node)->choices[choice].consume != 0
+		&& (*node)->choices[choice].consume(&(*node)->choices[choice],
+			(t_consume_params){arg, &consume_arg}, &out->err, parser->state))
 		return (1);
-	if ((*node)->choices[i[0]].next != NULL)
-		*node = (*node)->choices[i[0]].next;
+	if ((*node)->choices[choice].next != 0)
+		*node = (*node)->choices[choice].next;
 	if (consume_arg)
-		out->argi += 1 + (i[1] > 0);
-	if (consume_arg)
-		i[1] = 0;
+		++out->argi;
 	return (0);
 }
 
-/**
-* `*ai = *ai + (arg[*ai] != '\0') - *ai * (arg[*ai] == '\0');` and
-* `return (i - (i + 2) * (*ai > 0));`
-* are logical + mathematical work around not being allowed to juste use
-* ternaries to do `*ai = arg[*ai] == '\0' ? 0 : *ai + 1;` and
-* `return (*ai > 0 ? -2 : i);`
-*/
-
-static inline int	match_alias_or_name(const char *arg,
-	t_parse_result *out, int *ai, const t_node *node)
+static inline int	match_name(t_parse_result *out, t_parser *parser,
+	const t_node *node, char **arg)
 {
-	int	i;
+	int			i;
 
-	if (*ai == 0 && arg[0] == '-' && arg[1] != '-')
-		*ai = 1;
-	i = 0;
-	while (i < node->choice_count && !str_match(arg, node->choices[i].name))
-		++i;
-	if (i < node->choice_count || (*ai > 0 && arg[*ai] == '\0'))
+	if (out->argi >= parser->argc)
+		return (-1);
+	parser->arg = out->argi;
+	*arg = parser->argv[parser->arg];
+	if ((*arg)[0] == '-' && (*arg)[1] == '-' && (*arg)[2] == '\0')
 	{
-		*ai = 0;
 		++out->argi;
+		return (-1);
 	}
-	if (*ai > 0)
+	i = 0;
+	while (i < node->choice_count && !str_match((*arg), node->choices[i].name))
+		++i;
+	if (i < node->choice_count)
 	{
-		i = 0;
-		while (i < node->choice_count && arg[*ai] != node->choices[i].alias)
-			++i;
-		if (i < node->choice_count)
-		{
-			*ai = *ai + (arg[*ai] != '\0') - *ai * (arg[*ai] == '\0');
-			return (i);
-		}
+		++out->argi;
+		return (i);
 	}
-	return (i - (i + 2) * (*ai > 0));
+	if ((*arg)[0] == '-' && (*arg)[1] != '-' && (*arg)[1] != '\0')
+		parser->alias_index = 1;
+	return (i);
 }
 
-t_parse_result	parse_varg(const int argc, t_argvp varg, void *state,
+static inline int	match_alias_or_name(t_parse_result *out, t_parser *parser,
+	const t_node *node)
+{
+	int			i;
+	char		*arg;
+
+	arg = parser->argv[parser->arg];
+	if (parser->alias_index > 0 && arg[parser->alias_index] == '\0')
+	{
+		++out->argi;
+		parser->alias_index = 0;
+	}
+	if (parser->alias_index == 0)
+	{
+		i = match_name(out, parser, node, &arg);
+		if (i < node->choice_count)
+			return (i);
+	}
+	if (parser->alias_index > 0)
+	{
+		i = 0;
+		while (i < node->choice_count
+			&& arg[parser->alias_index] != node->choices[i].alias)
+			++i;
+		if (i < node->choice_count)
+			++parser->alias_index;
+	}
+	return (i);
+}
+
+//new target: -qsr <string> -> r not skiped
+//new target: -ss <string> <string> -r -> is valid
+//the trick is that when ai is set to 1, we also store the current argi
+//(only updating it when we reach the end of the
+
+t_parse_result	parse_argv(const int argc, t_argvp argv, void *state,
 	const t_node *node)
 {
 	t_parse_result	out;
-	int				i[2];
+	t_parser		parser;
+	int				choice;
 
 	out = (t_parse_result){0, 1};
-	i[1] = 0;
-	while (out.argi < argc && node != NULL)
+	parser = (t_parser){argc, (char **)argv, state, 1, 0};
+	while (parser.arg < argc && node != 0)
 	{
-		if (varg[out.argi][0] == '-' && varg[out.argi][1] == '-'
-				&& !varg[out.argi][2])
-			i[0] = -1;
-		else
-			i[0] = match_alias_or_name(varg[out.argi], &out, &i[1], node);
-		if (i[0] >= (int)node->choice_count)
+		choice = match_alias_or_name(&out, &parser, node);
+		if (choice >= node->choice_count)
 		{
 			out.err = node->missing_error;
 			if (out.err != 0)
 				return (out);
 			node = node->next;
 		}
-		else if (consume(&out, (t_parser){argc, varg, state}, i, &node))
+		else if (consume(&out, &parser, choice, &node))
+		{
+			if (out.err)
+				out.erri = parser.arg;
 			return (out);
+		}
 	}
 	return (out);
 }

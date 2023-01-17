@@ -62,7 +62,7 @@ int	process_error(t_parser_state state, int argc, t_argvp argv,
 	if (result.err == FT_SSL_INVALID_STRING)
 	{
 		write(1, "ft_ssl: Error: string expected after flag '", 43);
-		write_all_first_line(1, argv[result.argi]);
+		write_all_first_line(1, argv[result.erri]);
 		write(1, "'\n", 2);
 	}
 	return (0);
@@ -88,7 +88,7 @@ int	main(const int argc, t_argvp argv)
 		malloc(sizeof(t_input) * argc)};
 	if (parse_state.inpts == NULL)
 		return (-1);
-	result = parse_varg(argc, argv, &parse_state, &node);
+	result = parse_argv(argc, argv, &parse_state, &node);
 	if (result.err != 0)
 		process_error(parse_state, argc, argv, result);
 	else if (parse_state.mode != -1)

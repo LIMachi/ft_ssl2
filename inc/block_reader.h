@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   str_match.c                                        :+:      :+:    :+:   */
+/*   block_reader.h                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,16 +10,37 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <unistd.h>
+#ifndef BLOCK_READER_H
+# define BLOCK_READER_H
 
-int	str_match(const char *str1, const char *str2)
-{
-	int	i;
+# include <stdint.h>
+# include <stddef.h>
 
-	if (str1 == NULL || str2 == NULL)
-		return (0);
-	i = 0;
-	while (str1[i] != '\0' && str2[i] != '\0' && str1[i] == str2[i])
-		++i;
-	return (str1[i] == str2[i]);
-}
+typedef struct s_digest_block_reader	t_digest_block_reader;
+typedef struct s_str_reader				t_str_reader;
+
+typedef size_t (*const					t_read)(void *obj, char *buff,
+	size_t size);
+
+struct									s_digest_block_reader{
+	int				is_finished;
+	int				is_big_endian;
+	int				append_size_bytes;
+	void			*obj;
+	size_t			block_size;
+	t_read			read;
+	uint64_t		size;
+};
+
+struct									s_str_reader {
+	size_t		head;
+	const char	*str;
+};
+
+size_t									fd(void *obj, char *buff, size_t size);
+size_t									str(void *obj, char *buff, size_t size);
+int										read_block(
+											t_digest_block_reader *reader,
+											char *buff);
+
+#endif
