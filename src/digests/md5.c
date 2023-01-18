@@ -15,6 +15,7 @@
 #include "print_utils.h"
 #include "common_digest_functions.h"
 #include "digests.h"
+#include "block_reader.h"
 
 /**
 * md5sum test.txt ->                        35310a49e26265a58122d9c6e0823f49
@@ -76,7 +77,7 @@ uint32_t	get_block(const char *in, size_t in_len, uint32_t word_index)
 	return (t.w.a);
 }
 
-void	iteration(t_md5hash *h, const char *in, size_t initial_len,
+void	iteration(t_md5hash *h, /*const char *in,*/ /*size_t initial_len,*/ uint32_t w[16],
 	uint32_t i)
 {
 	uint32_t	f;
@@ -102,28 +103,32 @@ void	iteration(t_md5hash *h, const char *in, size_t initial_len,
 		f = h->w.c ^ (h->w.b | (~h->w.d));
 		g = (7 * i) % 16;
 	}
-	rotate(h, f, get_block(in, initial_len, g), i);
+	rotate(h, f, /*get_block(in, initial_len, g)*/w[g], i);
 }
 
 void	md5h(const char *in, char *out)
 {
 	uint32_t	i;
-	uint32_t	j;
+//	uint32_t	j;
 	t_md5hash	final;
-	size_t		initial_len;
+//	size_t		initial_len;
 	t_md5hash	h;
+	uint32_t w[16];
+	t_str_reader str_reader = (t_str_reader){0, in};
+	t_digest_block_reader reader = (t_digest_block_reader){0, 0, 8, &str_reader, 64, 4, str_read, 0};
 
 	final = (t_md5hash){.w = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476}};
-	initial_len = 0;
-	while (in[initial_len] != '\0')
-		++initial_len;
-	i = -1;
-	while (++i < (initial_len + 8) / 64 + 1)
+//	initial_len = 0;
+//	while (in[initial_len] != '\0')
+//		++initial_len;
+//	i = -1;
+	while (/*++i < (initial_len + 8) / 64 + 1*/read_block(&reader, w))
 	{
 		h = final;
-		j = -1;
-		while (++j < 64)
-			iteration(&h, in, initial_len, j);
+//		j = -1;
+		i = -1;
+		while (/*++j*/++i < 64)
+			iteration(&h, w, /*in,*/ /*initial_len,*//*j*/i);
 		final.w.a += h.w.a;
 		final.w.b += h.w.b;
 		final.w.c += h.w.c;

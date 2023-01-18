@@ -31,10 +31,6 @@ struct								s_consume_params {
 	int					*jump_arg;
 };
 
-/**
-* int (*const			consume)(const t_choice *self, t_consume_params params,
-* 			int *error, void *state);
-*/
 struct								s_choice {
 	char				alias;
 	const char *const	name;

@@ -101,7 +101,7 @@ int	str_match(const char *str1, const char *str2)
 {
 	int	i;
 
-	if (str1 == 0 || str2 == 0)
+	if (str1 == (char *)0 || str2 == (char *)0)
 		return (0);
 	i = 0;
 	while (str1[i] != '\0' && str2[i] != '\0' && str1[i] == str2[i])
@@ -125,7 +125,7 @@ static inline int	consume(t_parse_result *const out, t_parser *parser,
 	else
 		arg = 0;
 	consume_arg = 0;
-	if ((*node)->choices[choice].consume != 0
+	if ((*node)->choices[choice].consume != (t_consumer)0
 		&& (*node)->choices[choice].consume(&(*node)->choices[choice],
 			(t_consume_params){arg, &consume_arg}, &out->err, parser->state))
 		return (1);
@@ -207,7 +207,7 @@ t_parse_result	parse_argv(const int argc, t_argvp argv, void *state,
 
 	out = (t_parse_result){0, 1};
 	parser = (t_parser){argc, (char **)argv, state, 1, 0};
-	while (parser.arg < argc && node != 0)
+	while (parser.arg < argc && node != (t_node *)0)
 	{
 		choice = match_alias_or_name(&out, &parser, node);
 		if (choice >= node->choice_count)

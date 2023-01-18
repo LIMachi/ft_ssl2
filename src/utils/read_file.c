@@ -99,11 +99,12 @@ char	*read_file(const char *path, size_t *out_size)
 	size = file_size(path);
 	if (size < 0)
 		return (NULL);
-	out = malloc(sizeof(char) * size);
+	out = malloc(sizeof(char) * (size + 1));
 	if (out_size != NULL)
 		*out_size = size;
 	fd = open(path, O_RDONLY);
 	read(fd, out, size);
 	close(fd);
+	out[size] = '\0';
 	return (out);
 }
