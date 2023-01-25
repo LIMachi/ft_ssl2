@@ -10,12 +10,15 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdio.h>
+#include <fcntl.h>
+#include <malloc.h>
 #include "ft_ssl.h"
 #include "compact_array.h"
 #include "print_utils.h"
 #include "common_digest_functions.h"
 #include "digests.h"
-#include "block_reader.h"
+#include "block_getter.h"
 
 /**
 * md5sum test.txt ->                        35310a49e26265a58122d9c6e0823f49
@@ -106,7 +109,7 @@ void	iteration(t_md5hash *h, /*const char *in,*/ /*size_t initial_len,*/ uint32_
 	rotate(h, f, /*get_block(in, initial_len, g)*/w[g], i);
 }
 
-void	md5h(const char *in, char *out)
+char	*md5h(/*const char *in*/const t_digest_block_descriptor *descriptor, t_digest_block_getter *reader, char *out)
 {
 	uint32_t	i;
 //	uint32_t	j;
@@ -114,15 +117,15 @@ void	md5h(const char *in, char *out)
 //	size_t		initial_len;
 	t_md5hash	h;
 	uint32_t w[16];
-	t_str_reader str_reader = (t_str_reader){0, in};
-	t_digest_block_reader reader = (t_digest_block_reader){0, 0, 8, &str_reader, 64, 4, str_read, 0};
+//	t_str_reader str_reader = (t_str_reader){0, in};
+//	t_digest_block_reader reader = (t_digest_block_reader){0, 0, 8, &str_reader, 64, 4, str_read, 0};
 
 	final = (t_md5hash){.w = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476}};
 //	initial_len = 0;
 //	while (in[initial_len] != '\0')
 //		++initial_len;
 //	i = -1;
-	while (/*++i < (initial_len + 8) / 64 + 1*/read_block(&reader, w))
+	while (/*++i < (initial_len + 8) / 64 + 1*/read_block(descriptor, reader, w))
 	{
 		h = final;
 //		j = -1;
@@ -137,6 +140,7 @@ void	md5h(const char *in, char *out)
 	i = -1;
 	while (++i < 16)
 		out[i] = final.b[i];
+	return (out);
 }
 
 /**
@@ -147,6 +151,7 @@ void	md5h(const char *in, char *out)
 * block keyword and not the indentation of the previous if keyword... *facepalm*
 */
 
+/*
 int	md5(t_parser_state *s, int argc, t_argvp argv)
 {
 	int		read_stdin;
@@ -174,4 +179,38 @@ int	md5(t_parser_state *s, int argc, t_argvp argv)
 	else
 		md5h(s->inpts[i].data, hashes[i]);
 	return (print_hashes(read_stdin, s, hashes, 16));
+}
+*/
+
+int	md5(t_parser_state *s, int argc, t_argvp argv)
+{
+	const t_digest_block_descriptor descriptor = {0, 8, 64, 4};
+	t_digest_block_getter	reader;
+	char					hash[16];
+	size_t					i;
+
+	if (s->cinputs == 0 || s->flags & flag('p'))
+	{
+		reader = str_getter(read_fd(0, NULL));
+		print_stdin(reader.target.str.ptr, md5h(&descriptor, &reader, hash), 16, s->flags);
+		free((void *)reader.target.str.ptr);
+	}
+	i = -1;
+	while (++i < s->cinputs)
+	{
+		if (s->inpts[i].type == INPUT_FILE)
+		{
+			reader = fd_getter(open(s->inpts[i].arg, O_RDONLY));
+			if (reader.target.fd < 0)
+				return (print_file_error(s, i));
+			else
+				print_file_or_string(s, md5h(&descriptor, &reader, hash), i, 16);
+			close(reader.target.fd);
+		}
+		else
+		{
+			reader = str_getter(s->inpts[i].arg);
+			print_file_or_string(s, md5h(&descriptor, &reader, hash), i, 16);
+		}
+	}
 }

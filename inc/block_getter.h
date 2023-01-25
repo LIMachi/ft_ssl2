@@ -16,11 +16,21 @@
 # include <stdint.h>
 # include <stddef.h>
 
-typedef struct s_digest_block_reader	t_digest_block_reader;
-typedef struct s_str_reader				t_str_reader;
+typedef struct s_digest_block_getter		t_digest_block_getter;
+typedef struct s_digest_block_descriptor	t_digest_block_descriptor;
 
-typedef size_t (*const					t_read)(void *obj, uint8_t *buff,
-	size_t size);
+struct										s_str_reader {
+	size_t		head;
+	const char	*ptr;
+};
+
+union									u_digest_target {
+	int					fd;
+	struct s_str_reader	str;
+};
+
+typedef size_t 								(*t_read)(
+		union u_digest_target *target, uint8_t *buff, size_t size);
 
 /**
 * md5 digest block reader:
@@ -29,28 +39,31 @@ typedef size_t (*const					t_read)(void *obj, uint8_t *buff,
 * {0, 1, 8, <OBJ>, 64, 4, <READ>, 0}
 */
 
-struct									s_digest_block_reader{
-	int			finished;
+struct										s_digest_block_descriptor {
 	int			big_endian;
 	size_t		append_size_bytes;
-	void		*obj;
 	size_t		block_size;
 	size_t		word_size;
-	t_read		read;
-	size_t		size;
 };
 
-struct									s_str_reader {
-	size_t		head;
-	const char	*str;
+struct									s_digest_block_getter {
+	int						finished;
+	union u_digest_target	target;
+	t_read					read;
+	size_t					size;
+
 };
 
-size_t									fd_read(void *obj, uint8_t *buff,
-											size_t size);
-size_t									str_read(void *obj, uint8_t *buff,
-											size_t size);
+size_t									fd_read(union u_digest_target *target,
+											uint8_t *buff, size_t size);
+size_t									str_read(union u_digest_target *target,
+											uint8_t *buff, size_t size);
 int										read_block(
-											t_digest_block_reader *reader,
+											const t_digest_block_descriptor *descriptor,
+											t_digest_block_getter *reader,
 											void *buff);
+
+t_digest_block_getter					fd_getter(const int fd);
+t_digest_block_getter					str_getter(const char *str);
 
 #endif

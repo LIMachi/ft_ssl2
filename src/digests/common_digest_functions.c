@@ -26,6 +26,27 @@ void	write_hash(const char *hash, size_t hash_length)
 	}
 }
 
+void	print_stdin(const char *in, char *hash, size_t hash_size, uint64_t flags)
+{
+	int			nq;
+
+	nq = (flags & flag('q')) == 0;
+	write(1, "(", nq);
+	if (flags & flag('p'))
+	{
+		write(1, "\"", nq);
+		write_all_first_line(1, in);
+		write(1, "\"", nq);
+		write(1, "\n", !nq);
+	}
+	else if (nq)
+		write(1, "stdin", 5);
+	write(1, ")= ", 3 * nq);
+	write_hash(hash, hash_size);
+	write(1, "\n", 1);
+}
+
+/*
 void	print_stdin(t_parser_state *state, char *hash, size_t hash_length)
 {
 	int			nq;
@@ -45,6 +66,7 @@ void	print_stdin(t_parser_state *state, char *hash, size_t hash_length)
 	write_hash(hash, hash_length);
 	write(1, "\n", 1);
 }
+ */
 
 void	print_file_or_string(t_parser_state *state, char *hash,
 	size_t index, size_t hash_length)
@@ -92,8 +114,8 @@ int	print_hashes(int read_stdin, t_parser_state *state, char **hashes,
 {
 	size_t	i;
 
-	if (read_stdin)
-		print_stdin(state, hashes[state->cinputs - 1], hash_length);
+//	if (read_stdin)
+//		print_stdin(state, hashes[state->cinputs - 1], hash_length);
 	i = -1;
 	while (++i < state->cinputs - read_stdin)
 		print_file_or_string(state, hashes[i], i, hash_length);

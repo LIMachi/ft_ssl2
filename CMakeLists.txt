@@ -7,6 +7,6 @@ include_directories(inc)
 
 file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.c")
 
-add_executable(ft_ssl ${src} src/digests/block_reader.c inc/block_reader.h)
+add_executable(ft_ssl ${src})
 
 set_target_properties(ft_ssl PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ..)

@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   block_reader.c                                     :+:      :+:    :+:   */
+/*   block_getter.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -11,7 +11,8 @@
 /* ************************************************************************** */
 
 #include <unistd.h>
-#include "block_reader.h"
+#include "block_getter.h"
+#include "print_utils.h"
 
 /**
 * Put the total read size of the object in the buffer, taking into account the
@@ -46,7 +47,8 @@ static inline void	put_int(uint64_t var, uint8_t *buff, size_t sizeof_var,
 * which size is not equal to a word (ex sha256 will use a uint64_t size but use
 * uint32_t words).
 */
-static inline void	swap_endian(uint8_t *buff, t_digest_block_reader *reader)
+static inline void	swap_endian(uint8_t *buff, const t_digest_block_descriptor *descriptor,
+	int finished)
 {
 	const uint16_t	little_endian_test = 1;
 	size_t			i;
@@ -54,42 +56,40 @@ static inline void	swap_endian(uint8_t *buff, t_digest_block_reader *reader)
 	uint8_t			t;
 	size_t			l;
 
-	if (*(uint8_t *)&little_endian_test != reader->big_endian)
+	if (*(uint8_t *)&little_endian_test != descriptor->big_endian)
 		return;
-	l = reader->block_size - reader->finished * reader->append_size_bytes;
+	l = descriptor->block_size - finished * descriptor->append_size_bytes;
 	i = 0;
 	while (i < l)
 	{
 		j = 0;
-		while (j < reader->word_size / 2)
+		while (j < descriptor->word_size / 2)
 		{
 			t = buff[i + j];
-			buff[i + j] = buff[i + reader->word_size - j - 1];
-			buff[i + reader->word_size - j++ - 1] = t;
+			buff[i + j] = buff[i + descriptor->word_size - j - 1];
+			buff[i + descriptor->word_size - j++ - 1] = t;
 		}
-		i += reader->word_size;
+		i += descriptor->word_size;
 	}
 }
 
-size_t	fd_read(void *obj, uint8_t *buff, size_t size)
+size_t	fd_read(union u_digest_target *target, uint8_t *buff, size_t size)
 {
-	ssize_t			r;
+	ssize_t		r;
 
-	r = read(*(const int *)obj, buff, size);
+	r = read(target->fd, buff, size);
 	if (r < 0)
 		return (0);
 	return (r);
 }
 
-size_t	str_read(void *obj, uint8_t *buff, size_t size)
+size_t	str_read(union u_digest_target *target, uint8_t *buff, size_t size)
 {
 	size_t			r;
-	t_str_reader	*o;
 
-	o = (t_str_reader *)obj;
 	r = -1;
-	while (++r < size && o->str[o->head] != '\0')
-		buff[r] = o->str[o->head++];
+	while (++r < size && target->str.ptr[target->str.head] != '\0')
+		buff[r] = target->str.ptr[target->str.head++];
 	return (r);
 }
 
@@ -97,30 +97,30 @@ size_t	str_read(void *obj, uint8_t *buff, size_t size)
 * Populate the given buff with data from the reader,
 * Padded with 1 bit + 0 + total size of read object.
 */
-int	read_block(t_digest_block_reader *reader, void *buff)
+int	read_block(const t_digest_block_descriptor *descriptor, t_digest_block_getter *reader, void *buff)
 {
 	size_t	r;
 
 	if (reader->finished)
 		return (0);
-	r = reader->read(reader->obj, buff, reader->block_size);
+	r = reader->read(&reader->target, buff, descriptor->block_size);
 	if (r > 0)
 		reader->size += r;
-	if (r == reader->block_size)
+	if (r == descriptor->block_size)
 		return (1);
 	if (r > 0)
 		((uint8_t *)buff)[r++] = 0x80;
-	if (r + reader->append_size_bytes < reader->block_size)
+	if (r + descriptor->append_size_bytes < descriptor->block_size)
 	{
-		while (r + reader->append_size_bytes < reader->block_size)
+		while (r + descriptor->append_size_bytes < descriptor->block_size)
 			((uint8_t *)buff)[r++] = 0;
 		put_int(reader->size * 8, &((uint8_t *)buff)[r],
-			reader->append_size_bytes, reader->big_endian);
+			descriptor->append_size_bytes, descriptor->big_endian);
 		reader->finished = 1;
 	}
 	else
-		while (r < reader->block_size)
+		while (r < descriptor->block_size)
 			((uint8_t *)buff)[r++] = 0;
-	swap_endian(buff, reader);
+	swap_endian(buff, descriptor, reader->finished);
 	return (1);
 }

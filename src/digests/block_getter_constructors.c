@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   print_utils.h                                      :+:      :+:    :+:   */
+/*   block_getter.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,15 +10,21 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PRINT_UTILS_H
-# define PRINT_UTILS_H
+#include "block_getter.h"
 
-# include <unistd.h>
-# include "ft_ssl.h"
+t_digest_block_descriptor	descriptor(size_t block_size, size_t word_size,
+	size_t size_of_append_size, int big_endian)
+{
+	return ((t_digest_block_descriptor){big_endian, size_of_append_size,
+		block_size, word_size});
+}
 
-void	write_all_first_line(int fd, const char *str);
-void	write_maj(int fd, const char *str);
-int		print_file_error(t_parser_state *state, size_t i);
-void	write_escaped(int fd, const char *str);
+t_digest_block_getter	str_getter(const char *str)
+{
+	return ((t_digest_block_getter){0, {.str = {0, str}}, str_read, 0});
+}
 
-#endif
+t_digest_block_getter	fd_getter(const int fd)
+{
+	return ((t_digest_block_getter){0, {.fd = fd}, fd_read, 0});
+}
