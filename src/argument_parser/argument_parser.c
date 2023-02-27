@@ -35,6 +35,10 @@
 * A fully qualified name (no assumption of using '--' before, '--help' and
 *   'mode' are both valid. The name '--' alone is reserved to stop the parsing,
 *   but might be ignored if consumed by a previous argument accepting strings).
+*   The name can be NULL if only using alias. If alias is '\0' (ignored) and
+*   name is NULL (ignored) this choice will be considered as a special always
+*   true choice, use it at the end of a choice tree to match all the unparsed
+*   objects.
 * A nullable callback that will allow you to process the current node how you
 *   see fit. The parameters give you immutable accesses to the node that
 *   matched, the current and next arg, a flag to signal that you already
@@ -151,7 +155,9 @@ static inline int	match_name(t_parse_result *out, t_parser *parser,
 		return (-1);
 	}
 	i = 0;
-	while (i < node->choice_count && !str_match((*arg), node->choices[i].name))
+	while (i < node->choice_count && !(node->choices[i].name == 0
+			&& node->choices[i].alias == '\0')
+		&& !str_match((*arg), node->choices[i].name))
 		++i;
 	if (i < node->choice_count)
 	{

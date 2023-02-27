@@ -13,21 +13,75 @@
 #ifndef DIGESTS_H
 # define DIGESTS_H
 
-# include "ft_ssl.h"
+# include <stdint.h>
+# include "argument_parser.h"
 
-typedef union u_md5hash	t_md5hash;
+typedef struct s_hash	t_hash;
 
-struct					s_words {
+struct					s_512words {
+	uint32_t	a;
+	uint32_t	b;
+	uint32_t	c;
+	uint32_t	d;
+	uint32_t	e;
+	uint32_t	f;
+	uint32_t	g;
+	uint32_t	h;
+	uint32_t	i;
+	uint32_t	j;
+	uint32_t	k;
+	uint32_t	l;
+	uint32_t	m;
+	uint32_t	n;
+	uint32_t	o;
+	uint32_t	p;
+};
+
+struct					s_256words {
+	uint32_t	a;
+	uint32_t	b;
+	uint32_t	c;
+	uint32_t	d;
+	uint32_t	e;
+	uint32_t	f;
+	uint32_t	g;
+	uint32_t	h;
+};
+
+struct					s_128words {
 	uint32_t	a;
 	uint32_t	b;
 	uint32_t	c;
 	uint32_t	d;
 };
 
-union					u_md5hash {
-	uint64_t			u64[2];
-	struct s_words		w;
+union					u_512hash {
+	uint64_t			u[8];
+	struct s_512words	w;
+	char				b[64];
+};
+
+union					u_256hash {
+	uint64_t			u[4];
+	struct s_256words	w;
+	char				b[32];
+};
+
+union					u_128hash {
+	uint64_t			u[2];
+	struct s_128words	w;
 	char				b[16];
+};
+
+union					u_hash {
+	union u_128hash		h128;
+	union u_256hash		h256;
+	union u_512hash		h512;
+};
+
+struct					s_hash {
+	size_t			hash_size;
+	union u_hash	hash;
 };
 
 t_node					*digest_arguments(void);

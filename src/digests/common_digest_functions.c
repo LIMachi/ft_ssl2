@@ -26,7 +26,8 @@ void	write_hash(const char *hash, size_t hash_length)
 	}
 }
 
-void	print_stdin(const char *in, char *hash, size_t hash_size, uint64_t flags)
+void	print_stdin(const char *in, char *hash, size_t hash_size,
+	uint64_t flags)
 {
 	int			nq;
 
@@ -107,18 +108,4 @@ void	free_state_and_hashes(t_parser_state *state, char **hashes)
 				free((void *)state->inpts[i].data);
 	if (hashes != NULL)
 		free(hashes);
-}
-
-int	print_hashes(int read_stdin, t_parser_state *state, char **hashes,
-	size_t hash_length)
-{
-	size_t	i;
-
-//	if (read_stdin)
-//		print_stdin(state, hashes[state->cinputs - 1], hash_length);
-	i = -1;
-	while (++i < state->cinputs - read_stdin)
-		print_file_or_string(state, hashes[i], i, hash_length);
-	free_state_and_hashes(state, hashes);
-	return (0);
 }

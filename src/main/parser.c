@@ -11,11 +11,7 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-
-inline uint64_t	flag(const char c)
-{
-	return (((uint64_t)1) << (c - 'a'));
-}
+#include "block_getter.h"
 
 int	process_flag(const t_choice *self, t_consume_params params, int *error,
 	void *state)
@@ -27,8 +23,10 @@ int	process_flag(const t_choice *self, t_consume_params params, int *error,
 int	process_string(const t_choice *self, t_consume_params params, int *error,
 	void *state)
 {
-	t_parser_state	*ps;
-	size_t			l;
+	t_parser_state				*ps;
+	size_t						l;
+	t_digest_block_descriptor	des;
+	t_digest_block_getter		reader;
 
 	if (params.next_arg == NULL)
 	{
@@ -36,11 +34,17 @@ int	process_string(const t_choice *self, t_consume_params params, int *error,
 		return (1);
 	}
 	ps = (t_parser_state *)state;
-	l = 0;
-	while (params.next_arg[l] != '\0')
-		++l;
-	ps->inpts[ps->cinputs++] = (t_input){INPUT_STRING, params.next_arg, l,
-		params.next_arg};
+	if (ps->mode == 0)
+		des = descriptor(64, 4, 8, 0);
+	else if (ps->mode == 1)
+		des = descriptor(64, 4, 8, 1);
+	reader = str_getter(params.next_arg);
+	md5(params.next_arg, )
+//	l = 0;
+//	while (params.next_arg[l] != '\0')
+//		++l;
+//	ps->inpts[ps->cinputs++] = (t_input){INPUT_STRING, params.next_arg, l,
+//		params.next_arg};
 	*params.jump_arg = 1;
 	return (0);
 }
@@ -67,12 +71,14 @@ int	process_mode(const t_choice *self, t_consume_params params, int *error,
 	return (1);
 }
 
-void	get_remainder_files(t_parser_state *state, int argc, t_argvp argv)
+int	process_stdin(const t_choice *self, t_consume_params params, int *error,
+	void *state)
 {
-	int	i;
 
-	i = 0;
-	while (i < argc)
-		state->inpts[state->cinputs++] = (t_input){
-			INPUT_FILE, argv[i++]};
+}
+
+int	process_file(const t_choice *self, t_consume_params params, int *error,
+	void *state)
+{
+
 }

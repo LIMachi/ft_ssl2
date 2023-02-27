@@ -16,18 +16,25 @@
 # include <stddef.h>
 # include <stdint.h>
 # include "argument_parser.h"
-
-typedef enum e_ssl_error			t_ssl_error;
-typedef enum e_parser_input_type	t_parser_input_type;
+# include "digests.h"
+#include "block_getter.h"
 
 typedef struct s_modes				t_modes;
 typedef struct s_mode				t_mode;
 typedef struct s_parser_state		t_parser_state;
 typedef struct s_input				t_input;
+typedef enum e_mode_category		t_mode_category;
+
+typedef t_hash						(*t_digest_run)(t_digest_block_getter *);
+
+enum								e_mode_category {
+	DIGEST
+};
 
 struct								s_mode {
-	char	*name;
-	int		(*run)(t_parser_state *state, int argc, t_argvp argv);
+	char			*name;
+	t_mode_category	category;
+	void			*run;
 };
 
 struct								s_modes {
@@ -42,28 +49,10 @@ enum								e_ssl_error {
 	FT_SSL_CANT_READ_FILE
 };
 
-enum								e_parser_input_type {
-	STDIN,
-	INPUT_FILE,
-	INPUT_STRING,
-	OUTPUT_FILE
-};
-
-struct								s_input {
-	t_parser_input_type	type;
-	const char			*arg;
-	size_t				length;
-	const char			*data;
-};
-
 struct								s_parser_state {
 	size_t		mode;
 	uint64_t	flags;
-	size_t		cinputs;
-	t_input		*inpts;
 };
-
-uint64_t							flag(char c);
 
 int									process_flag(const t_choice *self,
 										t_consume_params params, int *error,

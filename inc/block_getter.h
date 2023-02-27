@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   block_reader.h                                     :+:      :+:    :+:   */
+/*   block_getter.h                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef BLOCK_READER_H
-# define BLOCK_READER_H
+#ifndef BLOCK_GETTER_H
+# define BLOCK_GETTER_H
 
 # include <stdint.h>
 # include <stddef.h>
@@ -24,12 +24,12 @@ struct										s_str_reader {
 	const char	*ptr;
 };
 
-union									u_digest_target {
+union										u_digest_target {
 	int					fd;
 	struct s_str_reader	str;
 };
 
-typedef size_t 								(*t_read)(
+typedef size_t								(*t_read)(
 		union u_digest_target *target, uint8_t *buff, size_t size);
 
 /**
@@ -46,7 +46,7 @@ struct										s_digest_block_descriptor {
 	size_t		word_size;
 };
 
-struct									s_digest_block_getter {
+struct										s_digest_block_getter {
 	int						finished;
 	union u_digest_target	target;
 	t_read					read;
@@ -54,16 +54,17 @@ struct									s_digest_block_getter {
 
 };
 
-size_t									fd_read(union u_digest_target *target,
-											uint8_t *buff, size_t size);
-size_t									str_read(union u_digest_target *target,
-											uint8_t *buff, size_t size);
-int										read_block(
-											const t_digest_block_descriptor *descriptor,
-											t_digest_block_getter *reader,
-											void *buff);
+size_t						fd_read(union u_digest_target *target,
+								uint8_t *buff, size_t size);
+size_t						str_read(union u_digest_target *target,
+								uint8_t *buff,	size_t size);
+int							read_block(const t_digest_block_descriptor *desc,
+								t_digest_block_getter *reader, void *buff);
 
-t_digest_block_getter					fd_getter(const int fd);
-t_digest_block_getter					str_getter(const char *str);
+t_digest_block_descriptor	descriptor(size_t block_size, size_t word_size,
+								size_t size_of_append_size, int big_endian);
+
+t_digest_block_getter		fd_getter(int fd);
+t_digest_block_getter		str_getter(const char *str);
 
 #endif

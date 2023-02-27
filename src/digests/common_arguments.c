@@ -15,10 +15,12 @@
 
 t_node	*digest_arguments(void)
 {
-	static t_node	out = (t_node){0, NULL, 0, NULL};
+	static t_node	digest_files = (t_node){0, NULL, 1, (t_choice[1]){{
+	'\0', NULL, process_file, &digest_files}}};
+	static t_node	out = (t_node){0, &digest_files, 0, NULL};
 	static t_choice	choices[4] = {
 	{'s', NULL, process_string, &out},
-	{'p', NULL, process_flag, &out},
+	{'p', NULL, process_stdin, &out},
 	{'q', NULL, process_flag, &out},
 	{'r', NULL, process_flag, &out}};
 

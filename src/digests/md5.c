@@ -10,7 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
 #include <fcntl.h>
 #include <malloc.h>
 #include "ft_ssl.h"
@@ -25,7 +24,7 @@
 * ./ft_ssl md5 test.txt -> MD5 (test.txt) = 35310a49e26265a58122d9c6e0823f49
 */
 
-void	rotate(t_md5hash *hash, uint32_t f, uint32_t w, uint32_t i)
+void	rotate(union u_128hash *hash, uint32_t f, uint32_t w, uint32_t i)
 {
 	uint32_t		x;
 	uint32_t		t;
@@ -53,35 +52,7 @@ void	rotate(t_md5hash *hash, uint32_t f, uint32_t w, uint32_t i)
 	hash->w.a = t;
 }
 
-uint32_t	get_block(const char *in, size_t in_len, uint32_t word_index)
-{
-	t_md5hash	t;
-	t_md5hash	s;
-	uint32_t	i;
-
-	if (word_index * 4 + 4 <= in_len)
-		return (((uint32_t *)in)[word_index]);
-	t = (t_md5hash){.u64 = {0, 0}};
-	i = -1;
-	while (++i < 4)
-	{
-		if (i + word_index * 4 < in_len)
-			t.b[i] = in[i + word_index * 4];
-		else if (i + word_index * 4 == in_len)
-			t.b[i] = 0x80;
-		else if ((i + word_index * 4) % 64 < 56)
-			t.b[i] = 0;
-		else
-		{
-			s = (t_md5hash){.u64 = {in_len * 8, 0}};
-			t.b[i] = s.b[(i + word_index * 4) % 64 - 56];
-		}
-	}
-	return (t.w.a);
-}
-
-void	iteration(t_md5hash *h, /*const char *in,*/ /*size_t initial_len,*/ uint32_t w[16],
-	uint32_t i)
+void	iteration(union u_128hash *h, uint32_t w[16], uint32_t i)
 {
 	uint32_t	f;
 	uint32_t	g;
@@ -106,41 +77,34 @@ void	iteration(t_md5hash *h, /*const char *in,*/ /*size_t initial_len,*/ uint32_
 		f = h->w.c ^ (h->w.b | (~h->w.d));
 		g = (7 * i) % 16;
 	}
-	rotate(h, f, /*get_block(in, initial_len, g)*/w[g], i);
+	rotate(h, f, w[g], i);
 }
 
-char	*md5h(/*const char *in*/const t_digest_block_descriptor *descriptor, t_digest_block_getter *reader, char *out)
+t_hash	md5(t_digest_block_getter *reader)
 {
+	const t_digest_block_descriptor descriptor = {0, 8, 64, 4};
 	uint32_t	i;
-//	uint32_t	j;
-	t_md5hash	final;
-//	size_t		initial_len;
-	t_md5hash	h;
+	t_hash	final;
+	t_hash	h;
 	uint32_t w[16];
-//	t_str_reader str_reader = (t_str_reader){0, in};
-//	t_digest_block_reader reader = (t_digest_block_reader){0, 0, 8, &str_reader, 64, 4, str_read, 0};
 
-	final = (t_md5hash){.w = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476}};
-//	initial_len = 0;
-//	while (in[initial_len] != '\0')
-//		++initial_len;
-//	i = -1;
-	while (/*++i < (initial_len + 8) / 64 + 1*/read_block(descriptor, reader, w))
+//	final = (t_hash){.hash_size = 128, {.h128 = {.w = {0x67452301, 0xefcdab89,
+//		0x98badcfe, 0x10325476}}}};
+	final = (t_hash){.hash_size = 128, {.h128 = {.b = {0x67, 0x45, 0x23, 0x01,
+		0xef, 0xcd, 0xab, 0x89, 0x98, 0xba, 0xdc, 0xfe, 0x10, 0x32, 0x54,
+		0x76}}}};
+	while (read_block(&descriptor, reader, w))
 	{
 		h = final;
-//		j = -1;
 		i = -1;
-		while (/*++j*/++i < 64)
-			iteration(&h, w, /*in,*/ /*initial_len,*//*j*/i);
-		final.w.a += h.w.a;
-		final.w.b += h.w.b;
-		final.w.c += h.w.c;
-		final.w.d += h.w.d;
+		while (++i < 64)
+			iteration(&h.hash.h128, w, i);
+		final.hash.h128.w.a += h.hash.h128.w.a;
+		final.hash.h128.w.b += h.hash.h128.w.b;
+		final.hash.h128.w.c += h.hash.h128.w.c;
+		final.hash.h128.w.d += h.hash.h128.w.d;
 	}
-	i = -1;
-	while (++i < 16)
-		out[i] = final.b[i];
-	return (out);
+	return (final);
 }
 
 /**
@@ -182,9 +146,9 @@ int	md5(t_parser_state *s, int argc, t_argvp argv)
 }
 */
 
+/*
 int	md5(t_parser_state *s, int argc, t_argvp argv)
 {
-	const t_digest_block_descriptor descriptor = {0, 8, 64, 4};
 	t_digest_block_getter	reader;
 	char					hash[16];
 	size_t					i;
@@ -192,7 +156,8 @@ int	md5(t_parser_state *s, int argc, t_argvp argv)
 	if (s->cinputs == 0 || s->flags & flag('p'))
 	{
 		reader = str_getter(read_fd(0, NULL));
-		print_stdin(reader.target.str.ptr, md5h(&descriptor, &reader, hash), 16, s->flags);
+		print_stdin(reader.target.str.ptr, md5h(&descriptor, &reader, hash), 16,
+			s->flags);
 		free((void *)reader.target.str.ptr);
 	}
 	i = -1;
@@ -213,4 +178,6 @@ int	md5(t_parser_state *s, int argc, t_argvp argv)
 			print_file_or_string(s, md5h(&descriptor, &reader, hash), i, 16);
 		}
 	}
+	return (0);
 }
+*/

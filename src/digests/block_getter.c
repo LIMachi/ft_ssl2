@@ -47,8 +47,8 @@ static inline void	put_int(uint64_t var, uint8_t *buff, size_t sizeof_var,
 * which size is not equal to a word (ex sha256 will use a uint64_t size but use
 * uint32_t words).
 */
-static inline void	swap_endian(uint8_t *buff, const t_digest_block_descriptor *descriptor,
-	int finished)
+static inline void	swap_endian(uint8_t *buff,
+	const t_digest_block_descriptor *descriptor, int finished)
 {
 	const uint16_t	little_endian_test = 1;
 	size_t			i;
@@ -57,7 +57,7 @@ static inline void	swap_endian(uint8_t *buff, const t_digest_block_descriptor *d
 	size_t			l;
 
 	if (*(uint8_t *)&little_endian_test != descriptor->big_endian)
-		return;
+		return ;
 	l = descriptor->block_size - finished * descriptor->append_size_bytes;
 	i = 0;
 	while (i < l)
@@ -97,7 +97,8 @@ size_t	str_read(union u_digest_target *target, uint8_t *buff, size_t size)
 * Populate the given buff with data from the reader,
 * Padded with 1 bit + 0 + total size of read object.
 */
-int	read_block(const t_digest_block_descriptor *descriptor, t_digest_block_getter *reader, void *buff)
+int	read_block(const t_digest_block_descriptor *descriptor,
+	t_digest_block_getter *reader, void *buff)
 {
 	size_t	r;
 
