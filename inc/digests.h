@@ -14,7 +14,8 @@
 # define DIGESTS_H
 
 # include <stdint.h>
-# include "argument_parser.h"
+# include "alloc_less_argv_parser.h"
+# include "block_getter.h"
 
 typedef struct s_hash	t_hash;
 
@@ -58,19 +59,22 @@ struct					s_128words {
 union					u_512hash {
 	uint64_t			u[8];
 	struct s_512words	w;
-	char				b[64];
+	uint32_t			aw[16];
+	unsigned char		b[64];
 };
 
 union					u_256hash {
 	uint64_t			u[4];
 	struct s_256words	w;
-	char				b[32];
+	uint32_t			aw[8];
+	unsigned char		b[32];
 };
 
 union					u_128hash {
 	uint64_t			u[2];
 	struct s_128words	w;
-	char				b[16];
+	uint32_t			aw[4];
+	unsigned char		b[16];
 };
 
 union					u_hash {
@@ -84,6 +88,8 @@ struct					s_hash {
 	union u_hash	hash;
 };
 
-t_node					*digest_arguments(void);
+typedef t_hash			(*t_hasher)(t_digest_block_getter *reader);
+
+t_arg_parser_node		*digest_arguments(void);
 
 #endif

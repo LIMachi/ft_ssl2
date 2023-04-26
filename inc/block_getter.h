@@ -30,7 +30,7 @@ union										u_digest_target {
 };
 
 typedef size_t								(*t_read)(
-		union u_digest_target *target, uint8_t *buff, size_t size);
+		union u_digest_target *target, uint8_t *buff, size_t size, int *print);
 
 /**
 * md5 digest block reader:
@@ -40,10 +40,10 @@ typedef size_t								(*t_read)(
 */
 
 struct										s_digest_block_descriptor {
-	int			big_endian;
-	size_t		append_size_bytes;
-	size_t		block_size;
-	size_t		word_size;
+	const int		big_endian;
+	const size_t	append_size_bytes;
+	const size_t	block_size;
+	const size_t	word_size;
 };
 
 struct										s_digest_block_getter {
@@ -51,20 +51,20 @@ struct										s_digest_block_getter {
 	union u_digest_target	target;
 	t_read					read;
 	size_t					size;
-
+	int						print;
 };
 
 size_t						fd_read(union u_digest_target *target,
-								uint8_t *buff, size_t size);
+								uint8_t *buff, size_t size, int *print);
 size_t						str_read(union u_digest_target *target,
-								uint8_t *buff,	size_t size);
+								uint8_t *buff,	size_t size, int *print);
 int							read_block(const t_digest_block_descriptor *desc,
 								t_digest_block_getter *reader, void *buff);
 
 t_digest_block_descriptor	descriptor(size_t block_size, size_t word_size,
 								size_t size_of_append_size, int big_endian);
 
-t_digest_block_getter		fd_getter(int fd);
-t_digest_block_getter		str_getter(const char *str);
+t_digest_block_getter		fd_getter(int fd, int print);
+t_digest_block_getter		str_getter(const char *str, int print);
 
 #endif

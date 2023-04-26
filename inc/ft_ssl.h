@@ -15,9 +15,10 @@
 
 # include <stddef.h>
 # include <stdint.h>
-# include "argument_parser.h"
+# include "alloc_less_argv_parser.h"
 # include "digests.h"
-#include "block_getter.h"
+# include "block_getter.h"
+# include "endianese.h"
 
 typedef struct s_modes				t_modes;
 typedef struct s_mode				t_mode;
@@ -52,35 +53,39 @@ enum								e_ssl_error {
 struct								s_parser_state {
 	size_t		mode;
 	uint64_t	flags;
+	size_t		processed;
+	void		*internal;
 };
 
-int									process_flag(const t_choice *self,
-										t_consume_params params, int *error,
-										void *state);
+unsigned int						process_flag(
+										const t_arg_parser_choice *const choice,
+										const char *const arg,
+										void *data);
 
-int									process_string(const t_choice *self,
-										t_consume_params params, int *error,
-										void *state);
+unsigned int						process_string(
+										const t_arg_parser_choice *const choice,
+										const char *const arg,
+										void *data);
 
-int									process_mode(const t_choice *self,
-										t_consume_params params, int *error,
-										void *state);
+unsigned int						process_mode(
+										const t_arg_parser_choice *const choice,
+										const char *const arg,
+										void *data);
 
-void								get_remainder_files(t_parser_state *state,
-										int argc, t_argvp argv);
+unsigned int						process_stdin(
+										const t_arg_parser_choice *const choice,
+										const char *const arg,
+										void *data);
+
+unsigned int						process_file(
+										const t_arg_parser_choice *const choice,
+										const char *const arg,
+										void *data);
 
 t_modes								modes(void);
 
-int									md5(t_parser_state *s, int argc,
-										t_argvp argv);
+t_hash								md5(t_digest_block_getter *getter);
 
-int									sha256(t_parser_state *state, int argc,
-										t_argvp argv);
-
-char								*read_fd(int fd, size_t *size);
-
-char								*read_file(const char *path, size_t *size);
-
-int									debug_digests(t_parser_state *state);
+t_hash								sha256(t_digest_block_getter *getter);
 
 #endif

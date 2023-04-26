@@ -16,9 +16,9 @@
 # include <unistd.h>
 # include "ft_ssl.h"
 
-void	write_all_first_line(int fd, const char *str);
 void	write_maj(int fd, const char *str);
-int		print_file_error(t_parser_state *state, size_t i);
-void	write_escaped(int fd, const char *str);
+void	write_hash(int fd, t_hash hash);
+
+int		proto_printf(const char *pattern, const void **inputs);
 
 #endif

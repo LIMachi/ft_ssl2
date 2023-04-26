@@ -8,8 +8,8 @@ allowed:
   close
   read
   write
-  malloc
-  free
+  malloc (see challenges)
+  free (see challenges)
 
 tolerated (need justifications):
   any (strerror and exit almost always ok)
@@ -19,9 +19,9 @@ expected commands:
   sha256
 
 expected flags:
-  -p print content of stdin instead of stdin (force stdin read and stdout print)
+  -p print content of stdin instead of 'stdin' (force stdin read and stdout print)
   -q quiet mode (remove all info but the hash, except for -p)
-  -r reverse output format (print the hashes first except for stdin)
+  -r reverse output format (print the hashes first, does not apply to stdin)
   -s print sum of following quoted string (-s "string")
   <none> if no file given, print usage
 

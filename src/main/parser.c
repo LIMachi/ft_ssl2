@@ -10,47 +10,47 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <string.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "ft_ssl.h"
 #include "block_getter.h"
+#include "print_utils.h"
 
-int	process_flag(const t_choice *self, t_consume_params params, int *error,
-	void *state)
+unsigned int	process_flag(const t_arg_parser_choice *const self,
+	const char *const arg, void *state)
 {
 	((t_parser_state *)state)->flags |= ((uint64_t)1) << (self->alias - 'a');
 	return (0);
 }
 
-int	process_string(const t_choice *self, t_consume_params params, int *error,
-	void *state)
+unsigned int	process_string(const t_arg_parser_choice *const self,
+	const char *const arg, void *state)
 {
 	t_parser_state				*ps;
-	size_t						l;
-	t_digest_block_descriptor	des;
 	t_digest_block_getter		reader;
+	t_hash						hash;
 
-	if (params.next_arg == NULL)
-	{
-		*error = FT_SSL_INVALID_STRING;
-		return (1);
-	}
 	ps = (t_parser_state *)state;
-	if (ps->mode == 0)
-		des = descriptor(64, 4, 8, 0);
-	else if (ps->mode == 1)
-		des = descriptor(64, 4, 8, 1);
-	reader = str_getter(params.next_arg);
-	md5(params.next_arg, )
-//	l = 0;
-//	while (params.next_arg[l] != '\0')
-//		++l;
-//	ps->inpts[ps->cinputs++] = (t_input){INPUT_STRING, params.next_arg, l,
-//		params.next_arg};
-	*params.jump_arg = 1;
+	++ps->processed;
+	if (arg == NULL)
+		return (proto_printf("sss", (const void *[3]){"ft_ssl: ",
+				modes().modes[ps->mode].name, ": missing string after -s\n"}));
+	if (!(ps->flags & (1 << ('q' - 'a'))) && !(ps->flags & (1 << ('r' - 'a'))))
+		proto_printf("msls", (const void *[4]){modes().modes[ps->mode].name,
+			" (\"", arg, "\") = "});
+	reader = str_getter(arg, -1);
+	hash = ((t_hasher) ps->internal)(&reader);
+	write_hash(1, hash);
+	if (!(ps->flags & (1 << ('q' - 'a'))) && (ps->flags & (1 << ('r' - 'a'))))
+		proto_printf("sl", (const void *[3]){" \"", arg, "\""});
+	write(1, "\n", 1);
 	return (0);
 }
 
-int	process_mode(const t_choice *self, t_consume_params params, int *error,
-	void *state)
+unsigned int	process_mode(const t_arg_parser_choice *const self,
+	const char *const arg, void *state)
 {
 	size_t			i;
 	t_parser_state	*ps;
@@ -61,24 +61,71 @@ int	process_mode(const t_choice *self, t_consume_params params, int *error,
 	ps = (t_parser_state *)state;
 	while (i < ml.mode_count)
 	{
-		if (str_match(ml.modes[i].name, self->name))
+		if (strcmp(ml.modes[i].name, self->label) == 0)
 		{
 			ps->mode = i;
+			ps->internal = ml.modes[i].run;
 			return (0);
 		}
+		++i;
 	}
-	*error = FT_SSL_INVALID_MODE;
-	return (1);
+	return (FT_SSL_INVALID_MODE);
 }
 
-int	process_stdin(const t_choice *self, t_consume_params params, int *error,
-	void *state)
+unsigned int	process_stdin(const t_arg_parser_choice *const self,
+	const char *const arg, void *state)
 {
+	t_parser_state				*ps;
+	t_digest_block_getter		reader;
+	t_hash						hash;
+	void						*quiet;
+	void						*print;
 
+	ps = (t_parser_state *)state;
+	++ps->processed;
+	quiet = (void *)(ps->flags & (1 << ('q' - 'a')));
+	print = (void *)(size_t)(arg != 0 && arg[0] == 'p');
+	if (!quiet)
+		proto_printf("scs", (const void *[3]){"(", print, "\""});
+	if (print)
+		reader = fd_getter(0, 1);
+	else
+		reader = fd_getter(0, -1);
+	hash = ((t_hasher) ps->internal)(&reader);
+	if (!quiet)
+		proto_printf("cscss", (const void *[]){print, "stdin",
+			(void *)(size_t) !print, "\"", ")= "});
+	else if (print)
+		write(1, "\n", 1);
+	return (proto_printf("hs", (const void *[2]){&hash, "\n"}));
 }
 
-int	process_file(const t_choice *self, t_consume_params params, int *error,
-	void *state)
+unsigned int	process_file(const t_arg_parser_choice *const self,
+	const char *const arg, void *state)
 {
+	t_parser_state				*ps;
+	t_digest_block_getter		reader;
+	t_hash						hash;
+	int							fd;
 
+	ps = (t_parser_state *)state;
+	++ps->processed;
+	fd = -1;
+	if (arg != 0)
+		fd = open(arg, O_RDONLY);
+	if (fd < 0)
+		return (proto_printf("sssss", (const void *[5]){"ft_ssl: ",
+				modes().modes[ps->mode].name, ": ", arg,
+				": No such file or directory\n"}));
+	if (!(ps->flags & (1 << ('q' - 'a'))) && !(ps->flags & (1 << ('r' - 'a'))))
+		proto_printf("msls", (const void *[4]){modes().modes[ps->mode].name,
+			" (", arg, ") = "});
+	reader = fd_getter(fd, -1);
+	hash = ((t_hasher) ps->internal)(&reader);
+	close(fd);
+	write_hash(1, hash);
+	if (!(ps->flags & (1 << ('q' - 'a'))) && (ps->flags & (1 << ('r' - 'a'))))
+		proto_printf("sl", (const void *[2]){" ", arg});
+	write(1, "\n", 1);
+	return (0);
 }

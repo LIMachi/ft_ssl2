@@ -10,24 +10,29 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "argument_parser.h"
+#include "alloc_less_argv_parser.h"
 #include "ft_ssl.h"
 
-t_node	*digest_arguments(void)
+t_arg_parser_node	*digest_arguments(void)
 {
-	static t_node	digest_files = (t_node){0, NULL, 1, (t_choice[1]){{
-	'\0', NULL, process_file, &digest_files}}};
-	static t_node	out = (t_node){0, &digest_files, 0, NULL};
-	static t_choice	choices[4] = {
-	{'s', NULL, process_string, &out},
-	{'p', NULL, process_stdin, &out},
-	{'q', NULL, process_flag, &out},
-	{'r', NULL, process_flag, &out}};
+	static t_arg_parser_node	digest_files = (t_arg_parser_node){0, NULL, 0,
+		NULL};
+	static t_arg_parser_choice	dfc[1] = {{3, '\0', NULL, 0, process_file,
+		&digest_files}};
+	static t_arg_parser_node	out = (t_arg_parser_node){0, &digest_files, 0,
+		NULL};
+	static t_arg_parser_choice	outc[4] = {
+	{2, 's', NULL, 1, process_string, &out},
+	{1, 'p', NULL, 0, process_stdin, &out},
+	{0, 'q', NULL, 0, process_flag, &out},
+	{0, 'r', NULL, 0, process_flag, &out}};
 
-	if (out.choice_count == 0)
+	if (out.count == 0)
 	{
-		out.choices = choices;
-		out.choice_count = 4;
+		digest_files.count = 1;
+		digest_files.choices = dfc;
+		out.count = 4;
+		out.choices = outc;
 	}
 	return (&out);
 }

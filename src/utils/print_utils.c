@@ -12,16 +12,6 @@
 
 #include "print_utils.h"
 
-void	write_all_first_line(int fd, const char *str)
-{
-	size_t	l;
-
-	l = 0;
-	while (str[l] != '\0' && str[l] != '\n' && str[l] != '\r')
-		++l;
-	write(fd, str, l);
-}
-
 void	write_maj(int fd, const char *str)
 {
 	size_t	l;
@@ -36,41 +26,42 @@ void	write_maj(int fd, const char *str)
 	}
 }
 
-int	print_file_error(t_parser_state *state, size_t i)
+void	write_hash(int fd, t_hash hash)
 {
-	write(1, "ft_ssl: ", 8);
-	write_all_first_line(1, modes().modes[state->mode].name);
-	write(1, ": ", 2);
-	write_all_first_line(1, state->inpts[i].arg);
-	write(1, ": Cannot open file\n", 19);
-	return (FT_SSL_CANT_READ_FILE);
+	int	i;
+
+	i = 0;
+	while (i < hash.hash_size / 8)
+	{
+		write(fd, &"0123456789abcdef"[hash.hash.h512.b[i] >> 4], 1);
+		write(fd, &"0123456789abcdef"[hash.hash.h512.b[i] & 0xF], 1);
+		++i;
+	}
 }
 
-void	write_escaped(int fd, const char *str)
+int	proto_printf(const char *pattern, const void **inputs)
 {
-	size_t	i;
-	size_t	j;
+	size_t	s;
+	size_t	l;
 
-	i = -1;
-	while (str[++i] != '\0')
+	s = 0;
+	while (pattern[s] != '\0')
 	{
-		j = i;
-		while (str[j] >= ' ' && str[j] != '"')
-			++j;
-		if (j - i > 0)
-			write(fd, &str[i], j - i);
-		i = j;
-		if (str[i] == '\0')
-			return ;
-		if (str[i] >= '\a' && str[i] <= '\r' && str[i] != '\t')
-			write(fd, &"\\a\\b\\t\\n\\v\\f\\r"[2 * (str[i] - '\a')], 2);
-		else if (str[i] == '"')
-			write(fd, "\"", 1);
-		else
+		if (pattern[s] == 's' || pattern[s] == 'l')
 		{
-			write(fd, "\\x", 2);
-			write(fd, &"01"[str[i] > 0xf], 1);
-			write(fd, &"0123456789abcdef"[str[i] & 0xf], 1);
+			l = 0;
+			while (((char *)inputs[s])[l] != '\0' && (pattern[s] == 's'
+				|| ((char *)inputs[s])[l] != '\n'))
+				++l;
+			write(1, inputs[s], l);
 		}
+		if (pattern[s] == 'm')
+			write_maj(1, inputs[s]);
+		if (pattern[s] == 'h')
+			write_hash(1, *((t_hash *)inputs[s]));
+		if (pattern[s] == 'c' && inputs[s])
+			++s;
+		++s;
 	}
+	return (0);
 }

@@ -7,6 +7,6 @@ include_directories(inc)
 
 file(GLOB_RECURSE src CONFIGURE_DEPENDS "src/*.c")
 
-add_executable(ft_ssl ${src})
+add_executable(ft_ssl ${src} src/utils/endianese.c inc/endianese.h)
 
 set_target_properties(ft_ssl PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ..)

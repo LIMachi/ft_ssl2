@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   compact_array.h                                    :+:      :+:    :+:   */
+/*   endianese.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,11 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef COMPACT_ARRAY_H
-# define COMPACT_ARRAY_H
+#ifndef ENDIANESE_H
+# define ENDIANESE_H
 
 # include <stddef.h>
+# include <stdint.h>
 
-void	*allocate_compact_2d_array(size_t x, size_t y);
+int			little_endian(void);
+uint16_t	swap_u16(uint16_t v);
+uint32_t	swap_u32(uint32_t v);
+uint64_t	swap_u64(uint64_t v);
+void		*swap_array(void *array, size_t length, size_t block);
 
 #endif

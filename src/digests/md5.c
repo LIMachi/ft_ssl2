@@ -10,18 +10,15 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <fcntl.h>
-#include <malloc.h>
 #include "ft_ssl.h"
-#include "compact_array.h"
-#include "print_utils.h"
-#include "common_digest_functions.h"
 #include "digests.h"
 #include "block_getter.h"
 
 /**
 * md5sum test.txt ->                        35310a49e26265a58122d9c6e0823f49
 * ./ft_ssl md5 test.txt -> MD5 (test.txt) = 35310a49e26265a58122d9c6e0823f49
+* md5sum test2.txt ->                       098f6bcd4621d373cade4e832627b4f6
+* ./ft_ssl md5 test2.txt ->                 098f6bcd4621d373cade4e832627b4f6
 */
 
 void	rotate(union u_128hash *hash, uint32_t f, uint32_t w, uint32_t i)
@@ -82,17 +79,14 @@ void	iteration(union u_128hash *h, uint32_t w[16], uint32_t i)
 
 t_hash	md5(t_digest_block_getter *reader)
 {
-	const t_digest_block_descriptor descriptor = {0, 8, 64, 4};
-	uint32_t	i;
-	t_hash	final;
-	t_hash	h;
-	uint32_t w[16];
+	const t_digest_block_descriptor	descriptor = {0, 8, 64, 4};
+	uint32_t						i;
+	t_hash							final;
+	t_hash							h;
+	uint32_t						w[16];
 
-//	final = (t_hash){.hash_size = 128, {.h128 = {.w = {0x67452301, 0xefcdab89,
-//		0x98badcfe, 0x10325476}}}};
-	final = (t_hash){.hash_size = 128, {.h128 = {.b = {0x67, 0x45, 0x23, 0x01,
-		0xef, 0xcd, 0xab, 0x89, 0x98, 0xba, 0xdc, 0xfe, 0x10, 0x32, 0x54,
-		0x76}}}};
+	final = (t_hash){.hash_size = 128, {.h128 = {.w = {0x67452301, 0xefcdab89,
+		0x98badcfe, 0x10325476}}}};
 	while (read_block(&descriptor, reader, w))
 	{
 		h = final;
@@ -106,78 +100,3 @@ t_hash	md5(t_digest_block_getter *reader)
 	}
 	return (final);
 }
-
-/**
-* thanks to a bug in the norminette, when a if statement is the only line of any
-* block keyword that accept both single lines or blocks (like while, if, for,
-* etc...), the 'else' keyword of the if statement is seen (by norminette) as
-* being outside the block keyword, and should follow the indentation of the
-* block keyword and not the indentation of the previous if keyword... *facepalm*
-*/
-
-/*
-int	md5(t_parser_state *s, int argc, t_argvp argv)
-{
-	int		read_stdin;
-	char	**hashes;
-	size_t	i;
-
-	get_remainder_files(s, argc, argv);
-	read_stdin = s->cinputs == 0;
-	read_stdin |= (s->flags & flag('p')) != 0;
-	i = -1;
-	while (++i < s->cinputs)
-		if (s->inpts[i].type == INPUT_FILE)
-			s->inpts[i].data = read_file(s->inpts[i].arg, &s->inpts[i].length);
-	else
-			s->inpts[i].data = s->inpts[i].arg;
-	if (read_stdin)
-		s->inpts[s->cinputs] = (t_input){STDIN, "stdin", 0, NULL};
-	if (read_stdin)
-		s->inpts[s->cinputs++].data = read_fd(0, &s->inpts[s->cinputs].length);
-	hashes = allocate_compact_2d_array(s->cinputs, sizeof(char) * 16);
-	i = -1;
-	while (++i < s->cinputs)
-		if (s->inpts[i].data == NULL)
-			return (print_file_error(s, i) | free_state_and_hashes(s, hashes));
-	else
-		md5h(s->inpts[i].data, hashes[i]);
-	return (print_hashes(read_stdin, s, hashes, 16));
-}
-*/
-
-/*
-int	md5(t_parser_state *s, int argc, t_argvp argv)
-{
-	t_digest_block_getter	reader;
-	char					hash[16];
-	size_t					i;
-
-	if (s->cinputs == 0 || s->flags & flag('p'))
-	{
-		reader = str_getter(read_fd(0, NULL));
-		print_stdin(reader.target.str.ptr, md5h(&descriptor, &reader, hash), 16,
-			s->flags);
-		free((void *)reader.target.str.ptr);
-	}
-	i = -1;
-	while (++i < s->cinputs)
-	{
-		if (s->inpts[i].type == INPUT_FILE)
-		{
-			reader = fd_getter(open(s->inpts[i].arg, O_RDONLY));
-			if (reader.target.fd < 0)
-				return (print_file_error(s, i));
-			else
-				print_file_or_string(s, md5h(&descriptor, &reader, hash), i, 16);
-			close(reader.target.fd);
-		}
-		else
-		{
-			reader = str_getter(s->inpts[i].arg);
-			print_file_or_string(s, md5h(&descriptor, &reader, hash), i, 16);
-		}
-	}
-	return (0);
-}
-*/
