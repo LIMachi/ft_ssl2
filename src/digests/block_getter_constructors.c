@@ -12,13 +12,6 @@
 
 #include "block_getter.h"
 
-t_digest_block_descriptor	descriptor(size_t block_size, size_t word_size,
-	size_t size_of_append_size, int big_endian)
-{
-	return ((t_digest_block_descriptor){big_endian, size_of_append_size,
-		block_size, word_size});
-}
-
 t_digest_block_getter	str_getter(const char *str, int print)
 {
 	return ((t_digest_block_getter){0, (union u_digest_target){

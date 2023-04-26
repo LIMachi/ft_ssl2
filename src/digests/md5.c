@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include "digests.h"
-#include "block_getter.h"
 
 /**
 * md5sum test.txt ->                        35310a49e26265a58122d9c6e0823f49

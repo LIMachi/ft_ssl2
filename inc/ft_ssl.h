@@ -20,27 +20,16 @@
 # include "block_getter.h"
 # include "endianese.h"
 
-typedef struct s_modes				t_modes;
 typedef struct s_mode				t_mode;
 typedef struct s_parser_state		t_parser_state;
-typedef struct s_input				t_input;
-typedef enum e_mode_category		t_mode_category;
 
-typedef t_hash						(*t_digest_run)(t_digest_block_getter *);
-
-enum								e_mode_category {
-	DIGEST
-};
+typedef int							(*t_parse_cleanup)(void *state, int ret,
+	const int argc, t_csa argv);
 
 struct								s_mode {
 	char			*name;
-	t_mode_category	category;
 	void			*run;
-};
-
-struct								s_modes {
-	size_t	mode_count;
-	t_mode	*modes;
+	t_parse_cleanup	cleanup;
 };
 
 enum								e_ssl_error {
@@ -51,41 +40,41 @@ enum								e_ssl_error {
 };
 
 struct								s_parser_state {
-	size_t		mode;
-	uint64_t	flags;
-	size_t		processed;
-	void		*internal;
+	uint64_t		flags;
+	size_t			processed;
+	t_mode			mode;
 };
 
 unsigned int						process_flag(
-										const t_arg_parser_choice *const choice,
-										const char *const arg,
+										const t_arg_parser_choice *choice,
+										const char *arg,
 										void *data);
 
 unsigned int						process_string(
-										const t_arg_parser_choice *const choice,
-										const char *const arg,
+										const t_arg_parser_choice *choice,
+										const char *arg,
 										void *data);
 
 unsigned int						process_mode(
-										const t_arg_parser_choice *const choice,
-										const char *const arg,
+										const t_arg_parser_choice *choice,
+										const char *arg,
 										void *data);
 
 unsigned int						process_stdin(
-										const t_arg_parser_choice *const choice,
-										const char *const arg,
+										const t_arg_parser_choice *choice,
+										const char *arg,
 										void *data);
 
 unsigned int						process_file(
-										const t_arg_parser_choice *const choice,
-										const char *const arg,
+										const t_arg_parser_choice *choice,
+										const char *arg,
 										void *data);
-
-t_modes								modes(void);
 
 t_hash								md5(t_digest_block_getter *getter);
 
 t_hash								sha256(t_digest_block_getter *getter);
+
+int									digest_cleanup(void *state, int ret,
+										int argc, t_csa argv);
 
 #endif

@@ -61,9 +61,6 @@ size_t						str_read(union u_digest_target *target,
 int							read_block(const t_digest_block_descriptor *desc,
 								t_digest_block_getter *reader, void *buff);
 
-t_digest_block_descriptor	descriptor(size_t block_size, size_t word_size,
-								size_t size_of_append_size, int big_endian);
-
 t_digest_block_getter		fd_getter(int fd, int print);
 t_digest_block_getter		str_getter(const char *str, int print);
 
