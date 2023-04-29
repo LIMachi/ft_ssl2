@@ -28,7 +28,7 @@ void	write_maj(int fd, const char *str)
 
 void	write_hash(int fd, t_hash hash)
 {
-	int	i;
+	size_t	i;
 
 	i = 0;
 	while (i < hash.hash_size / 8)

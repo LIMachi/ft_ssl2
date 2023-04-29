@@ -21,6 +21,7 @@ unsigned int	process_string(const t_arg_parser_choice *const self,
 	t_digest_block_getter		reader;
 	t_hash						hash;
 
+	(void)self;
 	ps = (t_parser_state *)state;
 	++ps->processed;
 	if (a == NULL)
@@ -47,6 +48,7 @@ unsigned int	process_stdin(const t_arg_parser_choice *const self,
 	void						*quiet;
 	void						*np;
 
+	(void)self;
 	ps = (t_parser_state *)state;
 	++ps->processed;
 	quiet = (void *)(ps->flags & (1 << ('q' - 'a')));
@@ -74,6 +76,7 @@ unsigned int	process_file(const t_arg_parser_choice *const self,
 	t_hash						hash;
 	int							fd;
 
+	(void)self;
 	ps = (t_parser_state *)state;
 	++ps->processed;
 	fd = -1;
@@ -96,6 +99,9 @@ unsigned int	process_file(const t_arg_parser_choice *const self,
 
 int	digest_cleanup(void *state, int ret, const int argc, t_csa argv)
 {
+	(void)ret;
+	(void)argc;
+	(void)argv;
 	if (((t_parser_state *)state)->processed == 0)
 		process_stdin(NULL, NULL, state);
 	return (0);

@@ -35,6 +35,7 @@ unsigned int	process_mode(const t_arg_parser_choice *const self,
 	static t_mode	modes[2] = {{"md5", md5, digest_cleanup},
 	{"sha256", sha256, digest_cleanup}};
 
+	(void)arg;
 	i = -1;
 	ps = (t_parser_state *)state;
 	while (++i < 2)
@@ -51,12 +52,14 @@ unsigned int	process_mode(const t_arg_parser_choice *const self,
 unsigned int	process_flag(const t_arg_parser_choice *const self,
 	const char *const arg, void *state)
 {
+	(void)arg;
 	((t_parser_state *)state)->flags |= ((uint64_t)1) << (self->alias - 'a');
 	return (0);
 }
 
 int	default_cleanup(void *state, int ret, const int argc, t_csa argv)
 {
+	(void)state;
 	if (argc <= 1)
 		write(1, "usage: ft_ssl command [flags] [file/string]\n", 44);
 	else if (ret == -FT_SSL_INVALID_MODE)

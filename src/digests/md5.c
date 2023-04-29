@@ -38,7 +38,7 @@ void	rotate(union u_128hash *hash, uint32_t f, uint32_t w, uint32_t i)
 	const uint32_t	ushift[16] = {7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6,
 		10, 15, 21};
 
-	shift = ushift[i & 3 | ((i & 0xF0) >> 2)];
+	shift = ushift[(i & 3) | ((i & 0xF0) >> 2)];
 	x = hash->w.a + f + usine[i] + w;
 	t = hash->w.d;
 	hash->w.d = hash->w.c;

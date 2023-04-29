@@ -22,7 +22,7 @@ static inline void	put_int(uint64_t var, uint8_t *buff, size_t sizeof_var,
 	int big_endian)
 {
 	char			*ptr;
-	int				i;
+	size_t			i;
 
 	if (!little_endian())
 		ptr = &((char *)&var)[8 - sizeof_var];
