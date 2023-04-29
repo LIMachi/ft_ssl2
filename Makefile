@@ -1,34 +1,31 @@
 NAME := ft_ssl
 CC := gcc
-ITEMS := main alloc_less_argv_parser utils/print_utils utils/endianese digests/block_getter digests/block_getter_constructors digests/common_arguments digests/md5 digests/sha256
-SRCDIR := src
+ITEMS := src/main.c src/alloc_less_argv_parser.c src/utils/print_utils.c\
+	src/utils/endianese.c src/digests/block_getter.c\
+	src/digests/block_getter_constructors.c src/digests/common_arguments.c\
+	src/digests/md5.c src/digests/sha256.c
 OBJDIR := obj
-SUBDIRS := utils digests
 INCDIRS := inc
 
 NORMINETTE := norminette
 CFLAGS += -Wall -Wextra -Werror
 
-DOTC := $(patsubst %, $(SRCDIR)/%.c, $(ITEMS))
-DOTO := $(patsubst %, $(OBJDIR)/%.o, $(ITEMS))
-OBJSUBDIRS := $(patsubst %, $(OBJDIR)/%, $(SUBDIRS))
+DOTO := $(patsubst %.c, $(OBJDIR)/%.o, $(ITEMS))
 INCLUDES := $(patsubst %, -I%, $(INCDIRS))
 
 .PHONY: all clean fclean re norminette
 
 all: $(NAME)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
-	@mkdir -p $(OBJSUBDIRS)
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(NAME): $(DOTO)
 	$(CC) $(CFLAGS) $(INCLUDES) $(DOTO) -o $(NAME)
 
 clean:
-	rm -f $(DOTO)
-	rm -fd $(OBJSUBDIRS)
-	rm -fd $(OBJDIR)
+	rm -rf $(OBJDIR)
 
 fclean: clean
 	rm -f $(NAME)
