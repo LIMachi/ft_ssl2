@@ -83,8 +83,9 @@ unsigned int	process_file(const t_arg_parser_choice *const self,
 	if (a != 0)
 		fd = open(a, O_RDONLY);
 	if (fd < 0)
-		return (proto_printf("sssss", (const void *[5]){"ft_ssl: ",
-				ps->mode.name, ": ", a, ": No such file or directory\n"}));
+		return (FT_SSL_CANT_READ_FILE + proto_printf("sssss",
+				(const void *[5]){"ft_ssl: ", ps->mode.name, ": ", a,
+				": No such file or directory\n"}));
 	if (!(ps->flags & (1 << ('q' - 'a'))) && !(ps->flags & (1 << ('r' - 'a'))))
 		proto_printf("msls", (const void *[4]){ps->mode.name, " (", a, ") = "});
 	reader = fd_getter(fd, -1);
@@ -102,7 +103,7 @@ int	digest_cleanup(void *state, int ret, const int argc, t_csa argv)
 	(void)ret;
 	(void)argc;
 	(void)argv;
-	if (((t_parser_state *)state)->processed == 0)
+	if (((t_parser_state *)state)->processed == 0 && ret >= 0)
 		process_stdin(NULL, NULL, state);
 	return (0);
 }
@@ -112,14 +113,14 @@ t_arg_parser_node	*digest_arguments(void)
 	static t_arg_parser_node	digest_files = (t_arg_parser_node){0, NULL, 0,
 		NULL};
 	static t_arg_parser_choice	dfc[1] = {{3, '\0', NULL, 0, process_file,
-		&digest_files}};
+		&digest_files, NULL}};
 	static t_arg_parser_node	out = (t_arg_parser_node){0, &digest_files, 0,
 		NULL};
 	static t_arg_parser_choice	outc[4] = {
-	{2, 's', NULL, 1, process_string, &out},
-	{1, 'p', NULL, 0, process_stdin, &out},
-	{0, 'q', NULL, 0, process_flag, &out},
-	{0, 'r', NULL, 0, process_flag, &out}};
+	{2, 's', NULL, 1, process_string, &out, NULL},
+	{1, 'p', NULL, 0, process_stdin, &out, NULL},
+	{0, 'q', NULL, 0, process_flag, &out, NULL},
+	{0, 'r', NULL, 0, process_flag, &out, NULL}};
 
 	if (out.count == 0)
 	{

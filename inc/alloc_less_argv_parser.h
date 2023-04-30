@@ -23,6 +23,9 @@ typedef unsigned int					(*t_arg_parser_matching_choice_handler)(
 	const t_arg_parser_choice *const choice, const char *const arg,
 	void *data);
 
+typedef int								(*t_arg_parser_finalizer)(void *data,
+	const int ret, const int argc, t_csa argv);
+
 struct	s_arg_parser_node {
 	const unsigned int				error;
 	const t_arg_parser_node *const	next;
@@ -37,6 +40,7 @@ struct	s_arg_parser_choice {
 	const int								take_arg;
 	t_arg_parser_matching_choice_handler	on_match;
 	const t_arg_parser_node					*next_if_match;
+	const t_arg_parser_finalizer			finalizer_if_match;
 };
 
 struct	s_arg_parser_instance {
@@ -47,6 +51,7 @@ struct	s_arg_parser_instance {
 	int								alias;
 	unsigned int					err;
 	void							*data;
+	t_arg_parser_finalizer			finalizer;
 };
 
 int	parse_argv(int argc, t_csa argv, const t_arg_parser_node *root, void *data);

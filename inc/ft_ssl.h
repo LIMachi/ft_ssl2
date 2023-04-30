@@ -23,13 +23,9 @@
 typedef struct s_mode				t_mode;
 typedef struct s_parser_state		t_parser_state;
 
-typedef int							(*t_parse_cleanup)(void *state, int ret,
-	const int argc, t_csa argv);
-
 struct								s_mode {
 	char			*name;
 	void			*run;
-	t_parse_cleanup	cleanup;
 };
 
 enum								e_ssl_error {

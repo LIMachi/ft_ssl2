@@ -33,7 +33,8 @@ int	i_match(const t_arg_parser_instance *const instance,
 	return (arg[i] == label[i]);
 }
 
-const t_arg_parser_choice	*match(t_arg_parser_instance *const p)
+int	match(t_arg_parser_instance *const p,
+	t_arg_parser_choice **found)
 {
 	unsigned int		c;
 	const char *const	a = (char *)&p->argv[p->arg][p->alias];
@@ -54,7 +55,8 @@ const t_arg_parser_choice	*match(t_arg_parser_instance *const p)
 		p->node = p->node->next;
 		return (0);
 	}
-	return (&p->node->choices[c]);
+	*found = &p->node->choices[c];
+	return (1);
 }
 
 const char	*take_next(t_arg_parser_instance *parser, int take_next)
@@ -87,13 +89,12 @@ const char	*take_next(t_arg_parser_instance *parser, int take_next)
 t_arg_parser_instance	internal_parse(t_arg_parser_instance p,
 	unsigned int *priority, unsigned int *max_priority, unsigned int sub)
 {
-	const t_arg_parser_choice	*m;
+	t_arg_parser_choice			*m;
 	const t_arg_parser_instance	t = p;
 
 	while (p.arg < p.argc && p.node != 0 && p.err == 0)
 	{
-		m = match(&p);
-		if (m == 0)
+		if (!match(&p, &m))
 			continue ;
 		if (m->priority > *max_priority)
 			*max_priority = m->priority;
@@ -102,6 +103,8 @@ t_arg_parser_instance	internal_parse(t_arg_parser_instance p,
 		else
 		{
 			p.node = m->next_if_match;
+			if (m->finalizer_if_match != 0)
+				p.finalizer = m->finalizer_if_match;
 			if (m->priority == *priority && m->on_match)
 				p.err = m->on_match(m, take_next(&p, m->take_arg), p.data);
 			else
@@ -119,12 +122,17 @@ int	parse_argv(const int argc, t_csa argv,
 	t_arg_parser_instance		instance;
 	unsigned int				max_priority;
 	unsigned int				priority;
+	int							err;
 
 	max_priority = 0;
 	priority = 0;
-	instance = (t_arg_parser_instance){root, argc, argv, 0, 0, 0, data};
+	instance = (t_arg_parser_instance){root, argc, argv, 0, 0, 0, data, 0};
 	instance = internal_parse(instance, &priority, &max_priority, -1);
 	if (instance.err > 0)
-		return (-(int)instance.err);
-	return (instance.arg);
+		err = -(int)instance.err;
+	else
+		err = instance.arg;
+	if (instance.finalizer != 0)
+		return (instance.finalizer(instance.data, err, argc, argv));
+	return (err);
 }

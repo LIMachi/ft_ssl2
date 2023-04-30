@@ -33,4 +33,4 @@ fclean: clean
 re: fclean all
 
 norminette:
-	$(NORMINETTE) $(INCDIRS) $(DOTC)
+	$(NORMINETTE) $(INCDIRS) $(ITEMS)
