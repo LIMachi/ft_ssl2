@@ -39,6 +39,7 @@ struct								s_parser_state {
 	uint64_t		flags;
 	size_t			processed;
 	t_mode			mode;
+	char			extra[64];
 };
 
 unsigned int						process_flag(
@@ -72,5 +73,13 @@ t_hash								sha256(t_digest_block_getter *getter);
 
 int									digest_cleanup(void *state, int ret,
 										int argc, t_csa argv);
+
+unsigned int						process_io(const t_arg_parser_choice *self,
+										const char *arg, void *state);
+
+t_arg_parser_node					*base64_arguments(void);
+
+int									base64_cleanup(void *state, int ret,
+										const int argc, t_csa argv);
 
 #endif

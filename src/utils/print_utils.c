@@ -39,7 +39,13 @@ void	write_hash(int fd, t_hash hash)
 	}
 }
 
-int	proto_printf(const char *pattern, const void **inputs)
+void	write_bits(int fd, size_t bits, size_t value)
+{
+	while (bits < (size_t)-1)
+		write(fd, &"01"[(value >> bits--) & 1], 1);
+}
+
+int	proto_printf(const int fd, const char *pattern, t_va inputs)
 {
 	size_t	s;
 	size_t	l;
@@ -53,14 +59,16 @@ int	proto_printf(const char *pattern, const void **inputs)
 			while (((char *)inputs[s])[l] != '\0' && (pattern[s] == 's'
 				|| ((char *)inputs[s])[l] != '\n'))
 				++l;
-			write(1, inputs[s], l);
+			write(fd, inputs[s], l);
 		}
 		if (pattern[s] == 'm')
-			write_maj(1, inputs[s]);
+			write_maj(fd, inputs[s]);
 		if (pattern[s] == 'h')
-			write_hash(1, *((t_hash *)inputs[s]));
+			write_hash(fd, *((t_hash *)inputs[s]));
 		if (pattern[s] == 'c' && inputs[s])
 			++s;
+		if (pattern[s] == 'b' && pattern[++s] == '*')
+			write_bits(fd, (size_t)inputs[s - 1], (size_t)inputs[s]);
 		++s;
 	}
 	return (0);

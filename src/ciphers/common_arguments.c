@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   print_utils.h                                      :+:      :+:    :+:   */
+/*   common_arguments.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,17 +10,25 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PRINT_UTILS_H
-# define PRINT_UTILS_H
+#include <fcntl.h>
+#include "ft_ssl.h"
+#include "print_utils.h"
 
-# include <unistd.h>
-# include "ft_ssl.h"
+unsigned int	process_io(const t_arg_parser_choice *const self,
+	const char *const arg, void *state)
+{
+	t_parser_state				*ps;
+	int							*ptr;
 
-typedef const void	*t_va[];
-
-void	write_maj(int fd, const char *str);
-void	write_hash(int fd, t_hash hash);
-
-int		proto_printf(int fd, const char *pattern, t_va inputs);
-
-#endif
+	ps = (t_parser_state *)state;
+	ptr = (int *)ps->extra;
+	if (self->alias == 'i')
+		++ptr;
+	if (*ptr != 0)
+		close(*ptr);
+	if (self->alias == 'i')
+		*ptr = open(arg, O_RDONLY);
+	else
+		*ptr = open(arg, O_WRONLY | O_CREAT | O_TRUNC);
+	return (0);
+}
