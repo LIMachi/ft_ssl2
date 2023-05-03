@@ -10,7 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
 #include "ft_ssl.h"
 #include "print_utils.h"
 #include "endianese.h"

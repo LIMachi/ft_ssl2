@@ -24,6 +24,8 @@ static inline void	put_int(uint64_t var, uint8_t *buff, size_t sizeof_var,
 	char			*ptr;
 	size_t			i;
 
+	if (sizeof_var == 0)
+		return ;
 	if (!little_endian())
 		ptr = &((char *)&var)[8 - sizeof_var];
 	else
@@ -79,12 +81,8 @@ size_t	str_read(union u_digest_target *target, uint8_t *buff, size_t size,
 	return (r);
 }
 
-/**
-* Populate the given buff with data from the reader,
-* Padded with 1 bit + 0 + total size of read object.
-*/
-int	read_block(const t_digest_block_descriptor *desc,
-	t_digest_block_getter *reader, void *buff)
+int	read_block(const t_block_descriptor *desc,
+	t_block_getter *reader, void *buff)
 {
 	size_t	r;
 

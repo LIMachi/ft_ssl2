@@ -67,9 +67,9 @@ unsigned int						process_file(
 										const char *arg,
 										void *data);
 
-t_hash								md5(t_digest_block_getter *getter);
+t_hash								md5(t_block_getter *getter);
 
-t_hash								sha256(t_digest_block_getter *getter);
+t_hash								sha256(t_block_getter *getter);
 
 int									digest_cleanup(void *state, int ret,
 										int argc, t_csa argv);

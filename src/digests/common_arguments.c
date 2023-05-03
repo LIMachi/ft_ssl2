@@ -17,9 +17,9 @@
 unsigned int	process_string(const t_arg_parser_choice *const self,
 	const char *const a, void *state)
 {
-	t_parser_state				*ps;
-	t_digest_block_getter		reader;
-	t_hash						hash;
+	t_parser_state	*ps;
+	t_block_getter	reader;
+	t_hash			hash;
 
 	(void)self;
 	ps = (t_parser_state *)state;
@@ -41,11 +41,11 @@ unsigned int	process_string(const t_arg_parser_choice *const self,
 unsigned int	process_stdin(const t_arg_parser_choice *const self,
 	const char *const arg, void *state)
 {
-	t_parser_state				*ps;
-	t_digest_block_getter		reader;
-	t_hash						hash;
-	void						*quiet;
-	void						*np;
+	t_parser_state	*ps;
+	t_block_getter	reader;
+	t_hash			hash;
+	void			*quiet;
+	void			*np;
 
 	(void)self;
 	ps = (t_parser_state *)state;
@@ -70,10 +70,10 @@ unsigned int	process_stdin(const t_arg_parser_choice *const self,
 unsigned int	process_file(const t_arg_parser_choice *const self,
 	const char *const a, void *state)
 {
-	t_parser_state				*ps;
-	t_digest_block_getter		reader;
-	t_hash						hash;
-	int							fd;
+	t_parser_state	*ps;
+	t_block_getter	reader;
+	t_hash			hash;
+	int				fd;
 
 	(void)self;
 	ps = (t_parser_state *)state;

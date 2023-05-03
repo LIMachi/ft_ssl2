@@ -75,13 +75,13 @@ void	iteration(union u_128hash *h, uint32_t w[16], uint32_t i)
 	rotate(h, f, w[g], i);
 }
 
-t_hash	md5(t_digest_block_getter *reader)
+t_hash	md5(t_block_getter *reader)
 {
-	const t_digest_block_descriptor	descriptor = {0, 8, 64, 4};
-	uint32_t						i;
-	t_hash							final;
-	t_hash							h;
-	uint32_t						w[16];
+	const t_block_descriptor	descriptor = {0, 8, 64, 4, 0x80, 0};
+	uint32_t					i;
+	t_hash						final;
+	t_hash						h;
+	uint32_t					w[16];
 
 	final = (t_hash){.hash_size = 128, {.h128 = {.w = {0x67452301, 0xefcdab89,
 		0x98badcfe, 0x10325476}}}};

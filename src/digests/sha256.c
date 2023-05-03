@@ -77,13 +77,13 @@ void	sha256_iteration(union u_256hash *h, uint32_t *w)
 	}
 }
 
-t_hash	sha256(t_digest_block_getter *reader)
+t_hash	sha256(t_block_getter *reader)
 {
-	const t_digest_block_descriptor	descriptor = {1, 8, 64, 4};
-	t_hash							final;
-	t_hash							h;
-	uint32_t						w[64];
-	size_t							i;
+	const t_block_descriptor	descriptor = {1, 8, 64, 4, 0x80, 0};
+	t_hash						final;
+	t_hash						h;
+	uint32_t					w[64];
+	size_t						i;
 
 	final = (t_hash){.hash_size = 256, {.h256 = {.w = {0x67e6096a, 0x85ae67bb,
 		0x72f36e3c, 0x3af54fa5, 0x7f520e51, 0x8c68059b, 0xabd9831f,
