@@ -88,7 +88,7 @@ struct					s_hash {
 	union u_hash	hash;
 };
 
-typedef t_hash			(*t_hasher)(t_block_getter *reader);
+typedef t_hash			(*t_hasher)(t_bg_reader *reader);
 
 t_arg_parser_node		*digest_arguments(void);
 

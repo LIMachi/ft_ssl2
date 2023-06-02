@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-# include <stddef.h>
-# include <stdint.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /**
 * do initial (inverse) permutation of v

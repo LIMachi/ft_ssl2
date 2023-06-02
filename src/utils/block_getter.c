@@ -14,99 +14,86 @@
 #include "block_getter.h"
 #include "endianese.h"
 
-/**
-* Put the total read size of the object in the buffer, taking into account the
-* expected size in bytes of the total and the endianese.
-*/
-static inline void	put_int(uint64_t var, uint8_t *buff, size_t sizeof_var,
-	int big_endian)
-{
-	char			*ptr;
-	size_t			i;
-
-	if (sizeof_var == 0)
-		return ;
-	if (!little_endian())
-		ptr = &((char *)&var)[8 - sizeof_var];
-	else
-		ptr = (char *)&var;
-	i = -1;
-	if (big_endian != little_endian())
-		while (++i < sizeof_var)
-			buff[i] = ptr[i];
-	else
-		while (++i < sizeof_var)
-			buff[i] = ptr[sizeof_var - i - 1];
-}
-
-size_t	fd_read(union u_digest_target *target, uint8_t *buff, size_t size,
-	int *print)
-{
-	ssize_t		r;
-	ssize_t		i;
-
-	r = read(target->fd, buff, size);
-	if (r < 0)
-		return (0);
-	if (*print >= 0)
-	{
-		i = 0;
-		while (i < r && buff[i] != '\n' && buff[i] != '\r')
-			++i;
-		write(*print, buff, (size_t)i);
-		if (buff[i] == '\n' || buff[i] == '\r')
-			*print = -1;
-	}
-	return ((size_t)r);
-}
-
-size_t	str_read(union u_digest_target *target, uint8_t *buff, size_t size,
-	int *print)
+size_t	str_read_func(t_bg_reader *self, uint8_t *buff,
+	const t_bg_descriptor *desc)
 {
 	size_t			r;
 	size_t			i;
 
+	if (self->finished)
+		return (0);
 	r = -1;
-	while (++r < size && target->str.ptr[target->str.head] != '\0')
-		buff[r] = target->str.ptr[target->str.head++];
-	if (*print >= 0)
+	while (++r < desc->block_size * desc->word_size
+		&& self->str_ptr[self->head_or_fd] != '\0')
+		buff[r] = self->str_ptr[self->head_or_fd++];
+	i = r;
+	while (i < desc->block_size * desc->word_size)
+		buff[i++] = 0;
+	if (self->forward >= 0)
 	{
 		i = 0;
 		while (i < r && buff[i] != '\n' && buff[i] != '\r')
 			++i;
-		write(*print, buff, (size_t)i);
+		write(self->forward, buff, i);
 		if (buff[i] == '\n' || buff[i] == '\r')
-			*print = -1;
+			self->forward = -1;
 	}
 	return (r);
 }
 
-int	read_block(const t_block_descriptor *desc,
-	t_block_getter *reader, void *buff)
+t_bg_reader	str_reader(const char *str, int forward)
+{
+	return ((t_bg_reader){0, 0, str, forward, str_read_func, 0, 0});
+}
+
+size_t	fd_read_func(t_bg_reader *self, uint8_t *buff,
+	const t_bg_descriptor *desc)
+{
+	ssize_t			r;
+	size_t			i;
+
+	if (self->finished)
+		return (0);
+	r = read(self->head_or_fd, buff, desc->block_size * desc->word_size);
+	if (r < 0)
+		r = 0;
+	i = (size_t)r;
+	while (i < desc->block_size * desc->word_size)
+		buff[i++] = 0;
+	if (self->forward >= 0)
+	{
+		i = 0;
+		while (i < (size_t)r && buff[i] != '\n' && buff[i] != '\r')
+			++i;
+		write(self->forward, buff, (size_t)i);
+		if (buff[i] == '\n' || buff[i] == '\r')
+			self->forward = -1;
+	}
+	return ((size_t)r);
+}
+
+t_bg_reader	fd_reader(int fd, int forward)
+{
+	return ((t_bg_reader){0, fd, 0, forward, fd_read_func, 0, 0});
+}
+
+int	read_block(const t_bg_descriptor *desc, t_bg_reader *reader, void *buf)
 {
 	size_t	r;
 
 	if (reader->finished)
 		return (0);
-	r = reader->read(&reader->target, buff, desc->block_size,
-			&reader->print);
+	r = reader->reader(reader, buf, desc);
 	if (r > 0)
 		reader->size += r;
-	if (r == desc->block_size)
-		return (1);
-	if (r > 0)
-		((uint8_t *)buff)[r++] = 0x80;
-	if (r + desc->append_size_bytes < desc->block_size)
+	if (r != desc->word_size * desc->block_size)
 	{
-		while (r + desc->append_size_bytes < desc->block_size)
-			((uint8_t *)buff)[r++] = 0;
-		put_int(reader->size * 8, &((uint8_t *)buff)[r],
-			desc->append_size_bytes, desc->big_endian);
-		reader->finished = 1;
+		if (desc->func)
+			reader->finished = !desc->func(buf, r, reader->size, reader->rep++);
+		else
+			reader->finished = 1;
 	}
-	else
-		while (r < desc->block_size)
-			((uint8_t *)buff)[r++] = 0;
-	swap_array(buff, desc->block_size / desc->word_size, desc->word_size);
+	if (desc->big_endian == little_endian())
+		swap_array(buf, desc->block_size, desc->word_size);
 	return (1);
 }

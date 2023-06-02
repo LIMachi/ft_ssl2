@@ -1,0 +1,7 @@
+Error: invalid md5/sha256 on big files (the block getter is probably at fault)
+./ft_ssl md5 rules.txt ->       MD5 (rules.txt) = 33d7313b8a5e660a69e6e960e33dee05
+md5sum rules.txt ->                               be29b6187ffeb5e5bdfb40080f8ea843  rules.txt
+./ft_ssl sha256 rules.txt -> SHA256 (rules.txt) = 3b555519cab19f01d6e04e6ccb27a43c67f5d18f02049e26a943570a48ece05a
+openssl sha256 rules.txt ->    SHA256(rules.txt)= a74be7a67cdbdf25a196741c3c26f7031511f6434c81d6e4f63f268f42066710
+./ft_ssl md5 test.txt ->         MD5 (test.txt) = 0d23dd4e022791426c43812704092991
+md5sum test.txt ->                                35310a49e26265a58122d9c6e0823f49  test.txt

@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   block_getter.c                                     :+:      :+:    :+:   */
+/*   bit.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hmartzolf <hmartzol@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,16 +10,20 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "block_getter.h"
+#include "bit.h"
 
-t_block_getter	str_getter(const char *str, int print)
-{
-	return ((t_block_getter){0, (union u_digest_target){
-		.str = (struct s_str_reader){0, str}}, str_read, 0, print});
-}
+/**
+* rotate bits of a value left/right (like a shift, but over/underflowing bits
+* are reinserted)
+* @param value to be rotated
+* @param shift > 0 => rotate left; < 0 rotate right
+* @return the rotated value
+*/
 
-t_block_getter	fd_getter(const int fd, int print)
+uint32_t	rot32(uint32_t value, ssize_t shift)
 {
-	return ((t_block_getter){0, (union u_digest_target){
-		.fd = fd}, fd_read, 0, print});
+	if (shift < 0)
+		return ((value >> -shift) | (value << (32 + shift)));
+	else
+		return ((value << shift) | (value >> (32 - shift)));
 }

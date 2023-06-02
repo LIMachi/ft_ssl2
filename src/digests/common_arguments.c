@@ -18,7 +18,7 @@ unsigned int	process_string(const t_arg_parser_choice *const self,
 	const char *const a, void *state)
 {
 	t_parser_state	*ps;
-	t_block_getter	reader;
+	t_bg_reader		reader;
 	t_hash			hash;
 
 	(void)self;
@@ -29,7 +29,7 @@ unsigned int	process_string(const t_arg_parser_choice *const self,
 				ps->mode.name, ": missing string after -s\n"}));
 	if (!(ps->flags & (1 << ('q' - 'a'))) && !(ps->flags & (1 << ('r' - 'a'))))
 		proto_printf(1, "msls", (t_va){ps->mode.name, " (\"", a, "\") = "});
-	reader = str_getter(a, -1);
+	reader = str_reader(a, -1);
 	hash = ((t_hasher) ps->mode.run)(&reader);
 	write_hash(1, hash);
 	if (!(ps->flags & (1 << ('q' - 'a'))) && (ps->flags & (1 << ('r' - 'a'))))
@@ -42,7 +42,7 @@ unsigned int	process_stdin(const t_arg_parser_choice *const self,
 	const char *const arg, void *state)
 {
 	t_parser_state	*ps;
-	t_block_getter	reader;
+	t_bg_reader		reader;
 	t_hash			hash;
 	void			*quiet;
 	void			*np;
@@ -52,7 +52,7 @@ unsigned int	process_stdin(const t_arg_parser_choice *const self,
 	++ps->processed;
 	quiet = (void *)(ps->flags & (1 << ('q' - 'a')));
 	np = (void *)(size_t)(arg == 0 || (arg[0] != 'p' && arg[0] != 's'));
-	reader = fd_getter(0, 1 - 2 * (int)(size_t)np);
+	reader = fd_reader(0, 1 - 2 * (int)(size_t)np);
 	if (np)
 		hash = ((t_hasher) ps->mode.run)(&reader);
 	if (!quiet)
@@ -71,7 +71,7 @@ unsigned int	process_file(const t_arg_parser_choice *const self,
 	const char *const a, void *state)
 {
 	t_parser_state	*ps;
-	t_block_getter	reader;
+	t_bg_reader		reader;
 	t_hash			hash;
 	int				fd;
 
@@ -87,7 +87,7 @@ unsigned int	process_file(const t_arg_parser_choice *const self,
 				": No such file or directory\n"}));
 	if (!(ps->flags & (1 << ('q' - 'a'))) && !(ps->flags & (1 << ('r' - 'a'))))
 		proto_printf(1, "msls", (t_va){ps->mode.name, " (", a, ") = "});
-	reader = fd_getter(fd, -1);
+	reader = fd_reader(fd, -1);
 	hash = ((t_hasher) ps->mode.run)(&reader);
 	close(fd);
 	write_hash(1, hash);

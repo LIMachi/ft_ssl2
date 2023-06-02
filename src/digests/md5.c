@@ -13,13 +13,12 @@
 #include "ft_ssl.h"
 
 /**
-* md5sum test.txt ->                        35310a49e26265a58122d9c6e0823f49
-* ./ft_ssl md5 test.txt -> MD5 (test.txt) = 35310a49e26265a58122d9c6e0823f49
-* md5sum test2.txt ->                       098f6bcd4621d373cade4e832627b4f6
-* ./ft_ssl md5 test2.txt ->                 098f6bcd4621d373cade4e832627b4f6
+* Here I use the fact that const are allowed as a way to have a precalculated
+* table of sinuses without using globals or defines,
+* which are not allowed by 42's norm.
 */
 
-void	rotate(union u_128hash *hash, uint32_t f, uint32_t w, uint32_t i)
+void	md5_rotate(union u_128hash *hash, uint32_t f, uint32_t w, uint32_t i)
 {
 	uint32_t		x;
 	uint32_t		t;
@@ -47,7 +46,12 @@ void	rotate(union u_128hash *hash, uint32_t f, uint32_t w, uint32_t i)
 	hash->w.a = t;
 }
 
-void	iteration(union u_128hash *h, uint32_t w[16], uint32_t i)
+/**
+* I will not have the pretension to know what those bit operations are doing
+* (except scrambling the data in a predictive and distributed way).
+*/
+
+void	md5_iteration(union u_128hash *h, uint32_t w[16], uint32_t i)
 {
 	uint32_t	f;
 	uint32_t	g;
@@ -72,12 +76,46 @@ void	iteration(union u_128hash *h, uint32_t w[16], uint32_t i)
 		f = h->w.c ^ (h->w.b | (~h->w.d));
 		g = (7 * i) % 16;
 	}
-	rotate(h, f, w[g], i);
+	md5_rotate(h, f, w[g], i);
 }
 
-t_hash	md5(t_block_getter *reader)
+/**
+* Add 1 bit at the end of the message, then add the total size of the message
+* at the very end of the block, or request an extra block if there is not
+* enough space to encode the size.
+* Use a trick with pointers to copy the whole size in one operation.
+* We ensure this copy will result in a little endian size by checking first the
+* endianese of the machine, and if we are in big endian, swap the size.
+*/
+
+int	md5_complement(uint8_t *buff, size_t read, size_t total_size, size_t repeat)
 {
-	const t_block_descriptor	descriptor = {0, 8, 64, 4, 0x80, 0};
+	if (repeat == 0)
+		buff[read++] = 0x80;
+	if (read <= 56)
+	{
+		if (little_endian())
+			*(uint64_t *) &buff[56] = (uint64_t)(total_size * 8);
+		else
+			*(uint64_t *) &buff[56] = swap_u64((uint64_t)(total_size * 8));
+		return (0);
+	}
+	return (1);
+}
+
+/**
+* Do a full md5 digest on the given block reader (which might be a file, stdin
+* or a string).
+* We work on a per block operation, meaning we always use the same memory and
+* don't relly on memory allocation.
+* Return an union of hashes to also use a fixed memory size that will not
+* require an allocation but allow compatibility with other hash/digest
+* algorithms.
+*/
+
+t_hash	md5(t_bg_reader *reader)
+{
+	const t_bg_descriptor		descriptor = {4, 16, 0, md5_complement};
 	uint32_t					i;
 	t_hash						final;
 	t_hash						h;
@@ -90,7 +128,7 @@ t_hash	md5(t_block_getter *reader)
 		h = final;
 		i = -1;
 		while (++i < 64)
-			iteration(&h.hash.h128, w, i);
+			md5_iteration(&h.hash.h128, w, i);
 		final.hash.h128.w.a += h.hash.h128.w.a;
 		final.hash.h128.w.b += h.hash.h128.w.b;
 		final.hash.h128.w.c += h.hash.h128.w.c;

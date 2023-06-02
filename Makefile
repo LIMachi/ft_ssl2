@@ -1,10 +1,9 @@
 NAME := ft_ssl
 CC := gcc
 ITEMS := src/main.c src/alloc_less_argv_parser.c src/utils/print_utils.c\
-	src/utils/endianese.c src/utils/block_getter.c\
-	src/utils/block_getter_constructors.c src/digests/common_arguments.c\
-	src/digests/md5.c src/digests/sha256.c src/ciphers/base64.c\
-	src/ciphers/common_arguments.c src/ciphers/des.c
+	src/utils/endianese.c src/utils/block_getter.c src/utils/bit.c\
+	src/digests/common_arguments.c src/digests/md5.c src/digests/sha256.c\
+	src/ciphers/base64.c src/ciphers/common_arguments.c src/ciphers/des.c
 OBJDIR := obj
 INCDIRS := inc
 

@@ -103,7 +103,7 @@ t_arg_parser_instance	internal_parse(t_arg_parser_instance p,
 		else
 		{
 			p.node = m->next_if_match;
-			if (m->finalizer_if_match != 0)
+			if (m->priority == *priority && m->finalizer_if_match)
 				p.finalizer = m->finalizer_if_match;
 			if (m->priority == *priority && m->on_match)
 				p.err = m->on_match(m, take_next(&p, m->take_arg), p.data);

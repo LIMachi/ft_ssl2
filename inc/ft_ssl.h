@@ -19,6 +19,7 @@
 # include "digests.h"
 # include "block_getter.h"
 # include "endianese.h"
+# include "bit.h"
 
 typedef struct s_mode				t_mode;
 typedef struct s_parser_state		t_parser_state;
@@ -67,9 +68,9 @@ unsigned int						process_file(
 										const char *arg,
 										void *data);
 
-t_hash								md5(t_block_getter *getter);
+t_hash								md5(t_bg_reader *getter);
 
-t_hash								sha256(t_block_getter *getter);
+t_hash								sha256(t_bg_reader *getter);
 
 int									digest_cleanup(void *state, int ret,
 										int argc, t_csa argv);
