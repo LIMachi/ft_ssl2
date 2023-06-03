@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 #include "ft_ssl.h"
-#include "print_utils.h"
-#include "endianese.h"
 
 t_arg_parser_node	*base64_arguments(void)
 {
