@@ -77,14 +77,13 @@ int	main(const int argc, t_csa argv)
 {
 	int							r;
 	t_parser_state				parse_state;
-	static t_arg_parser_node	node = {FT_SSL_INVALID_MODE, NULL, 3, NULL};
+	static t_arg_parser_node	node = {FT_SSL_INVALID_MODE, NULL, 2, NULL};
 
 	if (argc <= 1)
 		return (usage(argv[0]));
-	node.choices = (t_arg_parser_choice [3]){
+	node.choices = (t_arg_parser_choice [2]){
 	{0, '\0', "md5", 0, process_mode, digest_arguments(), digest_cleanup},
-	{0, '\0', "sha256", 0, process_mode, digest_arguments(), digest_cleanup},
-	{0, '\0', "base64", 0, NULL, base64_arguments(), base64_cleanup}};
+	{0, '\0', "sha256", 0, process_mode, digest_arguments(), digest_cleanup}};
 	parse_state = (t_parser_state){0, 0, {"", NULL}, {}};
 	r = parse_argv(argc - 1, &argv[1], &node, &parse_state);
 	if (r == -FT_SSL_INVALID_MODE)
