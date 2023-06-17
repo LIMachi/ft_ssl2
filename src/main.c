@@ -32,12 +32,13 @@ unsigned int	process_mode(const t_arg_parser_choice *const self,
 {
 	size_t			i;
 	t_parser_state	*ps;
-	static t_mode	modes[2] = {{"md5", md5}, {"sha256", sha256}};
+	static t_mode	modes[4] = {{"md5", md5}, {"sha256", sha256},
+	{"sha224", sha224}, {"sha512", sha512}};
 
 	(void)arg;
 	i = -1;
 	ps = (t_parser_state *)state;
-	while (++i < 2)
+	while (++i < 4)
 	{
 		if (streq(modes[i].name, self->label))
 		{
@@ -65,11 +66,7 @@ int	usage(const char *name)
 		"ds:\nmd5 [-s/--string <string>] [-p/--stdin-passthrough] [-q/--quiet]"
 		"[-r/--reverse-print] [... <file_path>]\nsha256 [-s/--string <string>]"
 		" [-p/--stdin-passthrough] [-q/--quiet] [-r/--reverse-print] [... "
-		"<file_path>]\n"
-		"\nCipher commands:\n"
-		"base64 [-i/--input <file_path>] [-o/--output <file_path>] [-e/--encode"
-		" (default)] [-d/--decode] [-u/--url-compat] [-n/--insert-newlines]\n"
-	});
+		"<file_path>]\n"});
 	return (0);
 }
 
@@ -77,13 +74,15 @@ int	main(const int argc, t_csa argv)
 {
 	int							r;
 	t_parser_state				parse_state;
-	static t_arg_parser_node	node = {FT_SSL_INVALID_MODE, NULL, 2, NULL};
+	static t_arg_parser_node	node = {FT_SSL_INVALID_MODE, NULL, 4, NULL};
 
 	if (argc <= 1)
 		return (usage(argv[0]));
-	node.choices = (t_arg_parser_choice [2]){
+	node.choices = (t_arg_parser_choice [4]){
 	{0, '\0', "md5", 0, process_mode, digest_arguments(), digest_cleanup},
-	{0, '\0', "sha256", 0, process_mode, digest_arguments(), digest_cleanup}};
+	{0, '\0', "sha224", 0, process_mode, digest_arguments(), digest_cleanup},
+	{0, '\0', "sha256", 0, process_mode, digest_arguments(), digest_cleanup},
+	{0, '\0', "sha512", 0, process_mode, digest_arguments(), digest_cleanup}};
 	parse_state = (t_parser_state){0, 0, {"", NULL}, {}};
 	r = parse_argv(argc - 1, &argv[1], &node, &parse_state);
 	if (r == -FT_SSL_INVALID_MODE)

@@ -20,22 +20,14 @@
 typedef struct s_hash	t_hash;
 
 struct					s_512words {
-	uint32_t	a;
-	uint32_t	b;
-	uint32_t	c;
-	uint32_t	d;
-	uint32_t	e;
-	uint32_t	f;
-	uint32_t	g;
-	uint32_t	h;
-	uint32_t	i;
-	uint32_t	j;
-	uint32_t	k;
-	uint32_t	l;
-	uint32_t	m;
-	uint32_t	n;
-	uint32_t	o;
-	uint32_t	p;
+	uint64_t	a;
+	uint64_t	b;
+	uint64_t	c;
+	uint64_t	d;
+	uint64_t	e;
+	uint64_t	f;
+	uint64_t	g;
+	uint64_t	h;
 };
 
 struct					s_256words {

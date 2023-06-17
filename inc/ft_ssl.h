@@ -72,15 +72,16 @@ t_hash								md5(t_bg_reader *getter);
 
 t_hash								sha256(t_bg_reader *getter);
 
+t_hash								sha224(t_bg_reader *getter);
+
+t_hash								sha512(t_bg_reader *getter);
+
+uint64_t							sha512_root(uint64_t i);
+
 int									digest_cleanup(void *state, int ret,
 										int argc, t_csa argv);
 
 unsigned int						process_io(const t_arg_parser_choice *self,
 										const char *arg, void *state);
-
-t_arg_parser_node					*base64_arguments(void);
-
-int									base64_cleanup(void *state, int ret,
-										const int argc, t_csa argv);
 
 #endif

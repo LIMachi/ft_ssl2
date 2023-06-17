@@ -2,7 +2,8 @@ NAME := ft_ssl
 CC := gcc
 ITEMS := src/main.c src/alloc_less_argv_parser.c src/utils/print_utils.c\
 	src/utils/endianese.c src/utils/block_getter.c src/utils/bit.c\
-	src/digests/common_arguments.c src/digests/md5.c src/digests/sha256.c
+	src/digests/common_arguments.c src/digests/md5.c src/digests/sha256.c\
+	src/digests/sha224.c src/digests/sha512_roots.c src/digests/sha512.c
 OBJDIR := obj
 INCDIRS := inc
 
@@ -33,3 +34,6 @@ re: fclean all
 
 norminette:
 	$(NORMINETTE) $(INCDIRS) $(ITEMS)
+
+test_md5: $(NAME)
+	./$(NAME) md5 

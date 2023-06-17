@@ -17,9 +17,9 @@
 # include <stdint.h>
 
 int			little_endian(void);
-uint16_t	swap_u16(uint16_t v);
 uint32_t	swap_u32(uint32_t v);
 uint64_t	swap_u64(uint64_t v);
+__uint128_t	swap_u128(__uint128_t v);
 void		*swap_array(void *array, size_t length, size_t block);
 
 #endif

@@ -27,3 +27,11 @@ uint32_t	rot32(uint32_t value, ssize_t shift)
 	else
 		return ((value << shift) | (value >> (32 - shift)));
 }
+
+uint64_t	rot64(uint64_t value, ssize_t shift)
+{
+	if (shift < 0)
+		return ((value >> -shift) | (value << (64 + shift)));
+	else
+		return ((value << shift) | (value >> (64 - shift)));
+}

@@ -17,5 +17,6 @@
 # include <unistd.h>
 
 uint32_t	rot32(uint32_t w, ssize_t shift);
+uint64_t	rot64(uint64_t w, ssize_t shift);
 
 #endif
