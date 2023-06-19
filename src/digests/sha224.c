@@ -100,7 +100,7 @@ t_hash	sha224(t_bg_reader *reader)
 	uint32_t				w[64];
 	size_t					i;
 
-	final = (t_hash){.hash_size = 256, {.h256 = {.w = {0xd89e05c1,
+	final = (t_hash){.hash_size = 224, {.h256 = {.w = {0xd89e05c1,
 		0x07d57c36, 0x17dd7030, 0x39590ef7, 0x310bc0ff, 0x11155868,
 		0xa78ff964, 0xa44ffabe}}}};
 	if (little_endian())

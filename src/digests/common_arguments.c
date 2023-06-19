@@ -109,23 +109,20 @@ int	digest_cleanup(void *state, int ret, const int argc, t_csa argv)
 
 t_arg_parser_node	*digest_arguments(void)
 {
-	static t_arg_parser_node	digest_files = (t_arg_parser_node){0, NULL, 0,
-		NULL};
-	static t_arg_parser_choice	dfc[1] = {{3, '\0', NULL, 0, process_file,
-		&digest_files, NULL}};
-	static t_arg_parser_node	out = (t_arg_parser_node){0, &digest_files, 0,
-		NULL};
-	static t_arg_parser_choice	outc[4] = {
+	static t_arg_parser_node	digest_files = (t_arg_parser_node){0, NULL, NULL};
+	static t_arg_parser_choice	dfc[2] = {{3, '\0', NULL, 0, process_file,
+		&digest_files, NULL}, END_CHOICE};
+	static t_arg_parser_node	out = (t_arg_parser_node){0, &digest_files, NULL};
+	static t_arg_parser_choice	outc[5] = {
 	{2, 's', "--string", 1, process_string, &out, NULL},
 	{1, 'p', "--stdin-passthrough", 0, process_stdin, &out, NULL},
 	{0, 'q', "--quiet", 0, process_flag, &out, NULL},
-	{0, 'r', "--reverse-print", 0, process_flag, &out, NULL}};
+	{0, 'r', "--reverse-print", 0, process_flag, &out, NULL},
+	END_CHOICE};
 
-	if (out.count == 0)
+	if (out.choices == NULL)
 	{
-		digest_files.count = 1;
 		digest_files.choices = dfc;
-		out.count = 4;
 		out.choices = outc;
 	}
 	return (&out);

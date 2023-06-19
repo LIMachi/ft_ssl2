@@ -15,7 +15,7 @@
 
 int	little_endian(void)
 {
-	static const uint16_t	test = 1;
+	const uint16_t	test = 1;
 
 	return (*((uint8_t *) &test));
 }

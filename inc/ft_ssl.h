@@ -78,6 +78,8 @@ t_hash								sha512(t_bg_reader *getter);
 
 uint64_t							sha512_root(uint64_t i);
 
+t_hash								sha384(t_bg_reader *reader);
+
 int									digest_cleanup(void *state, int ret,
 										int argc, t_csa argv);
 

@@ -40,16 +40,16 @@ int	match(t_arg_parser_instance *const p,
 	const char *const	a = (char *)&p->argv[p->arg][p->alias];
 
 	c = 0;
-	while (c < p->node->count && !i_match(p, c, a))
+	while (p->node->choices[c].priority != (unsigned)-1 && !i_match(p, c, a))
 		++c;
-	if (c == p->node->count && p->alias == 0 && a[0] == '-' && a[1] != '-')
+	if (p->node->choices[c].priority == (unsigned)-1 && p->alias == 0 && a[0] == '-' && a[1] != '-')
 	{
 		p->alias = 1;
 		c = 0;
-		while (c < p->node->count && !i_match(p, c, &a[1]))
+		while (p->node->choices[c].priority != (unsigned)-1 && !i_match(p, c, &a[1]))
 			++c;
 	}
-	if (c == p->node->count)
+	if (p->node->choices[c].priority == (unsigned)-1)
 	{
 		p->err = p->node->error;
 		p->node = p->node->next;

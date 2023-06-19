@@ -32,13 +32,13 @@ unsigned int	process_mode(const t_arg_parser_choice *const self,
 {
 	size_t			i;
 	t_parser_state	*ps;
-	static t_mode	modes[4] = {{"md5", md5}, {"sha256", sha256},
-	{"sha224", sha224}, {"sha512", sha512}};
+	const t_mode	modes[5] = {{"md5", md5}, {"sha256", sha256},
+	{"sha224", sha224}, {"sha512", sha512}, {"sha384", sha384}};
 
 	(void)arg;
 	i = -1;
 	ps = (t_parser_state *)state;
-	while (++i < 4)
+	while (++i < 5)
 	{
 		if (streq(modes[i].name, self->label))
 		{
@@ -59,14 +59,19 @@ unsigned int	process_flag(const t_arg_parser_choice *const self,
 
 int	usage(const char *name)
 {
+	size_t		i;
+	const char	*digest_names[] = {"md5", "sha224", "sha256",
+		"sha384", "sha512", NULL};
+
 	if (name != NULL)
 		proto_printf(1, "sss", (t_va){"usage: ", name,
 			" command [flags] [file/string]\n"});
-	proto_printf(1, "s", (t_va){"\nStandard commands:\n\nMessage Digest comman"
-		"ds:\nmd5 [-s/--string <string>] [-p/--stdin-passthrough] [-q/--quiet]"
-		"[-r/--reverse-print] [... <file_path>]\nsha256 [-s/--string <string>]"
-		" [-p/--stdin-passthrough] [-q/--quiet] [-r/--reverse-print] [... "
-		"<file_path>]\n"});
+	i = -1;
+	write(1, "\nStandard commands:\n\nMessage Digest commands:\n", 46);
+	while (digest_names[++i] != NULL)
+		proto_printf(1, "ss", (t_va){digest_names[i],
+			" [-s/--string <string>] [-p/--stdin-passthrough] [-q/--quiet]"
+			"[-r/--reverse-print] [... <file_path>]\n"});
 	return (0);
 }
 
@@ -74,15 +79,17 @@ int	main(const int argc, t_csa argv)
 {
 	int							r;
 	t_parser_state				parse_state;
-	static t_arg_parser_node	node = {FT_SSL_INVALID_MODE, NULL, 4, NULL};
+	static t_arg_parser_node	node = {FT_SSL_INVALID_MODE, NULL, NULL};
 
 	if (argc <= 1)
 		return (usage(argv[0]));
-	node.choices = (t_arg_parser_choice [4]){
+	node.choices = (t_choice_array){
 	{0, '\0', "md5", 0, process_mode, digest_arguments(), digest_cleanup},
 	{0, '\0', "sha224", 0, process_mode, digest_arguments(), digest_cleanup},
 	{0, '\0', "sha256", 0, process_mode, digest_arguments(), digest_cleanup},
-	{0, '\0', "sha512", 0, process_mode, digest_arguments(), digest_cleanup}};
+	{0, '\0', "sha384", 0, process_mode, digest_arguments(), digest_cleanup},
+	{0, '\0', "sha512", 0, process_mode, digest_arguments(), digest_cleanup},
+	END_CHOICE};
 	parse_state = (t_parser_state){0, 0, {"", NULL}, {}};
 	r = parse_argv(argc - 1, &argv[1], &node, &parse_state);
 	if (r == -FT_SSL_INVALID_MODE)
