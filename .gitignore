@@ -3,3 +3,8 @@ cmake-build-debug
 ft_ssl
 obj
 CMakeLists.txt
+/*.txt
+/website
+/file
+/*.dec
+/*.enc
